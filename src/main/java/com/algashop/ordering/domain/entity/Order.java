@@ -6,9 +6,11 @@ import com.algashop.ordering.domain.valueobject.Quantity;
 import com.algashop.ordering.domain.valueobject.ShippingInfo;
 import com.algashop.ordering.domain.valueobject.id.CustomerId;
 import com.algashop.ordering.domain.valueobject.id.OrderId;
+import lombok.Builder;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -36,6 +38,7 @@ public class Order {
 
     private Set<OrderItem> orderItems;
 
+    @Builder(builderClassName = "ExistingOrderBuild", buildMethodName = "existing")
     public Order(OrderId id, CustomerId customerId,
                  Money totalAmount, Quantity totalItems,
                  OffsetDateTime placedAt, OffsetDateTime paidAt,
@@ -60,6 +63,26 @@ public class Order {
         this.setShippingCost(shippingCost);
         this.setExpectedDeliveryDate(expectedDeliveryDate);
         this.setOrderItems(items);
+    }
+
+    public static Order draft(CustomerId customerId) {
+        return new Order(
+                new OrderId(),
+                customerId,
+                Money.ZERO,
+                Quantity.ZERO,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                OrderStatus.DRAFT,
+                null,
+                null,
+                null,
+                new HashSet<>()
+        );
     }
 
     public OffsetDateTime placedAt() {
@@ -159,12 +182,10 @@ public class Order {
     }
 
     private void setBillingInfo(BillingInfo billingInfo) {
-        Objects.requireNonNull(billingInfo);
         this.billingInfo = billingInfo;
     }
 
     private void setShippingInfo(ShippingInfo shippingInfo) {
-        Objects.requireNonNull(shippingInfo);
         this.shippingInfo = shippingInfo;
     }
 
@@ -174,7 +195,6 @@ public class Order {
     }
 
     private void setPaymentMethod(PaymentMethod paymentMethod) {
-        Objects.requireNonNull(paymentMethod);
         this.paymentMethod = paymentMethod;
     }
 
@@ -183,7 +203,6 @@ public class Order {
     }
 
     private void setExpectedDeliveryDate(LocalDate expectedDeliveryDate) {
-        Objects.requireNonNull(expectedDeliveryDate);
         this.expectedDeliveryDate = expectedDeliveryDate;
     }
 
