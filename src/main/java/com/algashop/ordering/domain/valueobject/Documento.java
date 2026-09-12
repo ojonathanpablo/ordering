@@ -3,19 +3,19 @@ package com.algashop.ordering.domain.valueobject;
 
 import java.util.Objects;
 
-public record Document(String value){
-    public Document(String value){
-        Objects.requireNonNull(value);
+public record Documento(String valor){
+    public Documento(String valor){
+        Objects.requireNonNull(valor);
 
-        if(value.isBlank()){
+        if(valor.isBlank()){
             throw new IllegalArgumentException();
         }
 
-        this.value = value;
+        this.valor = valor;
     }
 
     @Override
     public String toString() {
-        return value;
+        return valor;
     }
 }

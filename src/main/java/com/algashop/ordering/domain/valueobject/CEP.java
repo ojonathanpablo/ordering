@@ -2,20 +2,20 @@ package com.algashop.ordering.domain.valueobject;
 
 import java.util.Objects;
 
-public record ZipCode(String value) {
+public record CEP(String valor) {
 
-    public ZipCode {
-        Objects.requireNonNull(value);
-        if (value.isBlank()) {
+    public CEP {
+        Objects.requireNonNull(valor);
+        if (valor.isBlank()) {
             throw new IllegalArgumentException();
         }
-        if (value.length() != 5) {
+        if (valor.length() != 5) {
             throw new IllegalArgumentException();
         }
     }
 
     @Override
     public String toString() {
-        return value;
+        return valor;
     }
 }

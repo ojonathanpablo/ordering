@@ -1,16 +1,16 @@
 package com.algashop.ordering.domain.valueobject;
 
-import static com.algashop.ordering.domain.validator.FieldValidations.requiresValidEmail;
+import static com.algashop.ordering.domain.validator.ValidacoesCampo.exigeEmailValido;
 
-public record Email(String value) {
+public record Email(String valor) {
 
-    public Email(String value){
-        requiresValidEmail(value);
-        this.value = value;
+    public Email(String valor){
+        exigeEmailValido(valor);
+        this.valor = valor;
     }
 
     @Override
     public String toString() {
-        return value;
+        return valor;
     }
 }

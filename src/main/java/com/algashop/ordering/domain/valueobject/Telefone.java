@@ -2,18 +2,18 @@ package com.algashop.ordering.domain.valueobject;
 
 import java.util.Objects;
 
-public record Phone(String value) {
+public record Telefone(String valor) {
 
-    public Phone(String value) {
-        Objects.requireNonNull(value);
-        if (value.isBlank()) {
+    public Telefone(String valor) {
+        Objects.requireNonNull(valor);
+        if (valor.isBlank()) {
             throw new IllegalArgumentException();
         }
-        this.value = value;
+        this.valor = valor;
     }
 
     @Override
     public String toString() {
-        return value;
+        return valor;
     }
 }
