@@ -1,6 +1,5 @@
 package com.shop.ordering.domain.entity;
 
-import com.algashop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.id.ClienteId;
 

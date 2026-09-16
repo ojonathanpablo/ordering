@@ -11,7 +11,7 @@ public record PedidoId(TSID valor) {
         Objects.requireNonNull(valor);
     }
 
-    public PedidoId(){
+    public PedidoId() {
         this(GeradorId.gerarTSID());
     }
 

@@ -1,7 +1,6 @@
 package com.shop.ordering.domain.entity;
 
 import com.shop.ordering.domain.exception.ClienteArquivadoException;
-import com.algashop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.*;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;

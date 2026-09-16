@@ -11,9 +11,8 @@ public record ClienteId(UUID valor) {
         this(GeradorId.gerarUUIDBaseadoTempo());
     }
 
-    public ClienteId(UUID valor){
+    public ClienteId {
         Objects.requireNonNull(valor);
-        this.valor = valor;
     }
 
     @Override
