@@ -2,11 +2,47 @@ package com.shop.ordering.domain.exception;
 
 import com.shop.ordering.domain.valueobject.id.PedidoId;
 
-import static com.shop.ordering.domain.exception.MensagensErro.ERRO_PEDIDO_NAO_PODE_SER_REALIZADO;
+import static com.shop.ordering.domain.exception.MensagensErro.*;
 
 public class PedidoNaoPodeSerRealizadoException extends ExcecaoDominio {
 
-    public PedidoNaoPodeSerRealizadoException(PedidoId id) {
-        super(String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO, id));
+    private PedidoNaoPodeSerRealizadoException(String mensagem) {
+        super(mensagem);
+    }
+
+    public static PedidoNaoPodeSerRealizadoException semItens(PedidoId id) {
+        return new PedidoNaoPodeSerRealizadoException(
+                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_ITENS, id)
+        );
+    }
+
+    public static PedidoNaoPodeSerRealizadoException semInfoEntrega(PedidoId id) {
+        return new PedidoNaoPodeSerRealizadoException(
+                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_INFO_ENTREGA, id)
+        );
+    }
+
+    public static PedidoNaoPodeSerRealizadoException semInfoCobranca(PedidoId id) {
+        return new PedidoNaoPodeSerRealizadoException(
+                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_INFO_COBRANCA, id)
+        );
+    }
+
+    public static PedidoNaoPodeSerRealizadoException semDataEntregaPrevista(PedidoId id) {
+        return new PedidoNaoPodeSerRealizadoException(
+                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_DATA_ENTREGA, id)
+        );
+    }
+
+    public static PedidoNaoPodeSerRealizadoException semCustoEntrega(PedidoId id) {
+        return new PedidoNaoPodeSerRealizadoException(
+                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_CUSTO_ENTREGA, id)
+        );
+    }
+
+    public static PedidoNaoPodeSerRealizadoException semMetodoPagamento(PedidoId id) {
+        return new PedidoNaoPodeSerRealizadoException(
+                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_METODO_PAGAMENTO, id)
+        );
     }
 }

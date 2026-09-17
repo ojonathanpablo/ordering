@@ -1,14 +1,15 @@
 package com.shop.ordering.domain.entity;
 
 import com.shop.ordering.domain.exception.PedidoDataEntregaInvalidaException;
+import com.shop.ordering.domain.exception.PedidoNaoComtenItemException;
 import com.shop.ordering.domain.exception.PedidoNaoPodeSerRealizadoException;
 import com.shop.ordering.domain.exception.StatusPedidoNaoPodeSerAlterado;
 import com.shop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.id.ClienteId;
+import com.shop.ordering.domain.valueobject.id.ItemPedidoId;
 import com.shop.ordering.domain.valueobject.id.PedidoId;
 import com.shop.ordering.domain.valueobject.id.ProdutoId;
 import lombok.Builder;
-import org.apache.commons.validator.routines.DomainValidator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -63,9 +64,18 @@ public class Pedido {
         return new Pedido(new PedidoId(), clienteId, Dinheiro.ZERO, Quantidade.ZERO, null, null, null, null, null, null, StatusPedido.RASCUNHO, null, null, null, new HashSet<>());
     }
 
-    public void adicionaItemPedido(ProdutoId produtoId, NomeProduto nomeProduto, Dinheiro preco, Quantidade quantidade) {
+    public void adicionaItemPedido(Produto produto,
+                                   Quantidade quantidade) {
+        Objects.requireNonNull(produto);
+        Objects.requireNonNull(quantidade);
 
-        ItemPedido itemPedido = ItemPedido.novo().id(this.id).preco(preco).quantidade(quantidade).nomeProduto(nomeProduto).produtoId(produtoId).build();
+        produto.produtoEmEstoque();
+
+        ItemPedido itemPedido = ItemPedido.novo()
+                .pedidoId(this.id())
+                .produto(produto)
+                .quantidade(quantidade)
+                .build();
 
         if (this.itensPedido == null) {
             this.itensPedido = new HashSet<>();
@@ -78,24 +88,31 @@ public class Pedido {
     }
 
     public void realizar() {
-        Objects.requireNonNull(this.infoEntrega());
-        Objects.requireNonNull(this.infoCobranca());
-        Objects.requireNonNull(this.dataEntregaPrevista());
-        Objects.requireNonNull(this.custoEntrega());
-        Objects.requireNonNull(this.metodoPagamento());
-        Objects.requireNonNull(this.itensPedido());
-
-        if (this.itensPedido().isEmpty()) {
-            throw new PedidoNaoPodeSerRealizadoException(this.id());
-        }
+        this.verificarPodeRealizar();
 
         this.setRealizadoEm(OffsetDateTime.now());
         this.mudarStatus(StatusPedido.REALIZADO);
     }
 
-    public void marcaPago(){
+    public void marcaPago() {
         this.setPagoEm(OffsetDateTime.now());
         this.mudarStatus(StatusPedido.PAGO);
+    }
+
+    public void alterarQuantidadeItem(ItemPedidoId itemPedidoId, Quantidade quantidade) {
+        Objects.requireNonNull(itemPedidoId);
+        Objects.requireNonNull(quantidade);
+
+        ItemPedido itemPedido = localizarItemPedido(itemPedidoId);
+        itemPedido.alterarQuantidade(quantidade);
+
+        this.recalcularTotais();
+
+    }
+
+
+    public void alterarFormaPagamento() {
+        //TODO
     }
 
     public void alterarMetodoPagamento(MetodoPagamento metodoPagamento) {
@@ -121,6 +138,7 @@ public class Pedido {
         this.setCustoEntrega(custoEntrega);
         this.setDataEntregaPrevista(dataEntregaPrevista);
     }
+
 
     public boolean isRascunho() {
         return StatusPedido.RASCUNHO.equals(this.statusPedido);
@@ -221,6 +239,41 @@ public class Pedido {
         this.setStatusPedido(newStatus);
     }
 
+    private void verificarPodeRealizar() {
+        if (this.infoEntrega() == null) {
+            throw PedidoNaoPodeSerRealizadoException.semInfoEntrega(this.id());
+        }
+
+        if (this.infoCobranca() == null) {
+            throw PedidoNaoPodeSerRealizadoException.semInfoCobranca(this.id());
+        }
+
+        if (this.dataEntregaPrevista() == null) {
+            throw PedidoNaoPodeSerRealizadoException.semDataEntregaPrevista(this.id());
+        }
+
+        if (this.custoEntrega() == null) {
+            throw PedidoNaoPodeSerRealizadoException.semCustoEntrega(this.id());
+        }
+
+        if (this.metodoPagamento() == null) {
+            throw PedidoNaoPodeSerRealizadoException.semMetodoPagamento(this.id());
+        }
+
+        if (this.itensPedido().isEmpty()) {
+            throw PedidoNaoPodeSerRealizadoException.semItens(this.id());
+        }
+    }
+
+    private ItemPedido localizarItemPedido(ItemPedidoId itemPedidoId) {
+        Objects.requireNonNull(itemPedidoId);
+
+        return this.itensPedido()
+                .stream()
+                .filter(i -> i.itemPedidoId().equals(itemPedidoId))
+                .findFirst()
+                .orElseThrow(() -> new PedidoNaoComtenItemException(this.id, itemPedidoId));
+    }
 
     private void setClienteId(ClienteId clienteId) {
         Objects.requireNonNull(clienteId);

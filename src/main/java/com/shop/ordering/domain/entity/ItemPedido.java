@@ -2,6 +2,7 @@ package com.shop.ordering.domain.entity;
 
 import com.shop.ordering.domain.valueobject.Dinheiro;
 import com.shop.ordering.domain.valueobject.NomeProduto;
+import com.shop.ordering.domain.valueobject.Produto;
 import com.shop.ordering.domain.valueobject.Quantidade;
 import com.shop.ordering.domain.valueobject.id.PedidoId;
 import com.shop.ordering.domain.valueobject.id.ItemPedidoId;
@@ -39,15 +40,20 @@ public class ItemPedido {
     }
 
     @Builder(builderClassName = "ItemPedidoNovoBuilder", builderMethodName = "novo")
-    private static ItemPedido criarNovo(PedidoId id,
-                                        ProdutoId produtoId, NomeProduto nomeProduto,
-                                        Dinheiro preco, Quantidade quantidade) {
+    private static ItemPedido criarNovo(PedidoId pedidoId,
+                                        Produto produto,
+                                        Quantidade quantidade) {
+
+        Objects.requireNonNull(pedidoId);
+        Objects.requireNonNull(produto);
+        Objects.requireNonNull(quantidade);
+
         ItemPedido itemPedido = new ItemPedido(
                 new ItemPedidoId(),
-                id,
-                produtoId,
-                nomeProduto,
-                preco,
+                pedidoId,
+                produto.produtoId(),
+                produto.nomeProduto(),
+                produto.preco(),
                 quantidade,
                 Dinheiro.ZERO
         );
@@ -55,6 +61,12 @@ public class ItemPedido {
         itemPedido.recalcularTotais();
 
         return itemPedido;
+    }
+
+    void alterarQuantidade(Quantidade quantidade) {
+        Objects.requireNonNull(quantidade);
+        this.setQuantidade(quantidade);
+        this.recalcularTotais();
     }
 
     public ProdutoId produtoId() {
@@ -135,4 +147,6 @@ public class ItemPedido {
     public int hashCode() {
         return Objects.hashCode(id);
     }
+
+
 }

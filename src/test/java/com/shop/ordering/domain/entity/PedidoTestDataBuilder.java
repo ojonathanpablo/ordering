@@ -37,11 +37,13 @@ public class PedidoTestDataBuilder {
         pedido.alterarMetodoPagamento(metodoPagamento);
 
         if (comItens) {
-            pedido.adicionaItemPedido(new ProdutoId(), new NomeProduto("Notebook X11"),
-                    new Dinheiro("3000"), new Quantidade(2));
+            pedido.adicionaItemPedido(
+                    ProdutoTestDataBuilder.umProduto().build(),
+                    new Quantidade(2));
 
-            pedido.adicionaItemPedido(new ProdutoId(), new NomeProduto("4GB RAM"),
-                    new Dinheiro("200"), new Quantidade(1));
+            pedido.adicionaItemPedido(
+                    ProdutoTestDataBuilder.umProduto().build(),
+                    new Quantidade(1));
         }
 
         switch (this.status) {

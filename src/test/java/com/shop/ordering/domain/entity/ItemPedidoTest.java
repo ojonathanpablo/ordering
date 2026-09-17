@@ -14,10 +14,8 @@ class ItemPedidoTest {
     @Test
     public void deveGerar() {
         ItemPedido.novo()
-                .produtoId(new ProdutoId())
-                .id(new PedidoId())
-                .nomeProduto(new NomeProduto(" Mouse "))
-                .preco(new Dinheiro("100"))
+                .produto(ProdutoTestDataBuilder.umProduto().build())
+                .pedidoId(new PedidoId())
                 .quantidade(new Quantidade(1))
                 .build();
     }

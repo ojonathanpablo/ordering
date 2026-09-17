@@ -1,6 +1,7 @@
 package com.shop.ordering.domain.entity;
 
 import com.shop.ordering.domain.exception.PedidoDataEntregaInvalidaException;
+import com.shop.ordering.domain.exception.ProdutoEsgotadoException;
 import com.shop.ordering.domain.exception.StatusPedidoNaoPodeSerAlterado;
 import com.shop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.id.ClienteId;
@@ -23,14 +24,8 @@ class PedidoTest {
     @Test
     public void deveAdicionaItem() {
         Pedido pedido = Pedido.rascunho(new ClienteId());
-
-        pedido.adicionaItemPedido(
-                new ProdutoId(),
-                new NomeProduto("Mause pad"),
-                new Dinheiro("100"),
-                new Quantidade(1)
-
-        );
+        Produto produto = ProdutoTestDataBuilder.umProdutoAltMemoriaRam().build();
+        pedido.adicionaItemPedido(produto, new Quantidade(1));
 
         Assertions.assertThat(pedido.itensPedido().size()).isEqualTo(1);
 
@@ -38,10 +33,9 @@ class PedidoTest {
 
         Assertions.assertWith(itemPedido,
                 (i) -> Assertions.assertThat(i.itemPedidoId()).isNotNull(),
-                (i) -> Assertions.assertThat(i.nomeProduto()).isEqualTo(new NomeProduto("Mause pad")),
-                (i) -> Assertions.assertThat(i.preco()).isEqualTo(new Dinheiro("100")),
-                (i) -> Assertions.assertThat(i.quantidade()).isEqualTo(new Quantidade(1)),
-                (i) -> Assertions.assertThat(i.nomeProduto()).isEqualTo(new NomeProduto("Mause pad"))
+                (i) -> Assertions.assertThat(i.nomeProduto()).isEqualTo(new NomeProduto("8GB RAM")),
+                (i) -> Assertions.assertThat(i.preco()).isEqualTo(new Dinheiro("300")),
+                (i) -> Assertions.assertThat(i.quantidade()).isEqualTo(new Quantidade(1))
 
         );
     }
@@ -49,44 +43,26 @@ class PedidoTest {
     @Test
     public void DeveLancarExcecaoTentarAlterarConjuntoItens() {
         Pedido pedido = Pedido.rascunho(new ClienteId());
-
-        pedido.adicionaItemPedido(
-                new ProdutoId(),
-                new NomeProduto("Mause pad"),
-                new Dinheiro("100"),
-                new Quantidade(1)
-
-        );
+        Produto produto = ProdutoTestDataBuilder.umProdutoAltMemoriaRam().build();
+        pedido.adicionaItemPedido(produto, new Quantidade(1));
 
         Set<ItemPedido> itens = pedido.itensPedido();
 
         Assertions.assertThatExceptionOfType(UnsupportedOperationException.class)
                 .isThrownBy(itens::clear);
 
-
     }
 
     @Test
     public void DeveCalcularTotais() {
         Pedido pedido = Pedido.rascunho(new ClienteId());
+        Produto memoria = ProdutoTestDataBuilder.umProdutoAltMemoriaRam().build();
+        pedido.adicionaItemPedido(memoria, new Quantidade(2));
 
-        pedido.adicionaItemPedido(
-                new ProdutoId(),
-                new NomeProduto("Mause pad"),
-                new Dinheiro("100"),
-                new Quantidade(2)
+        Produto descktop = ProdutoTestDataBuilder.umProdutoIndisponivel().build();
+        pedido.adicionaItemPedido(descktop, new Quantidade(1));
 
-        );
-
-        pedido.adicionaItemPedido(
-                new ProdutoId(),
-                new NomeProduto("Memoria RAM"),
-                new Dinheiro("50"),
-                new Quantidade(1)
-
-        );
-
-        Assertions.assertThat(pedido.valorTotal()).isEqualTo(new Dinheiro("250"));
+        Assertions.assertThat(pedido.valorTotal()).isEqualTo(new Dinheiro("5600"));
         Assertions.assertThat(pedido.quantidade()).isEqualTo(new Quantidade(3));
 
     }
@@ -212,6 +188,33 @@ class PedidoTest {
 
         Assertions.assertThatExceptionOfType(PedidoDataEntregaInvalidaException.class)
                 .isThrownBy(() -> pedido.alterarInfoEntrega(infoEntrega, custoEntrega, dataEntregaPassada));
+    }
+
+    @Test
+    public void dadoPedidoRascunho_quandoAlterarQuantidadeItem_deveRecalcular() {
+        Pedido pedido = Pedido.rascunho(new ClienteId());
+        Produto produto = ProdutoTestDataBuilder.umProdutoAltMemoriaRam().build();
+        pedido.adicionaItemPedido(produto,new Quantidade(3));
+
+        ItemPedido itemPedido = pedido.itensPedido().iterator().next();
+
+        pedido.alterarQuantidadeItem(itemPedido.itemPedidoId(), new Quantidade(5));
+
+        Assertions.assertWith(pedido,
+                (p) -> Assertions.assertThat(p.valorTotal()).isEqualTo(new Dinheiro("1500")),
+                (p) -> Assertions.assertThat(p.quantidade()).isEqualTo(new Quantidade(5))
+        );
+    }
+
+    @Test
+    public void dadoProdutoEsgotado_quandoTentarAdicionarAoPedido_naoDevePermitir() {
+        Pedido pedido = Pedido.rascunho(new ClienteId());
+
+        Assertions.assertThatExceptionOfType(ProdutoEsgotadoException.class)
+                .isThrownBy(() -> pedido.adicionaItemPedido(
+                        ProdutoTestDataBuilder.umProdutoIndisponivel().build(),
+                        new Quantidade(1)
+                ));
     }
 
 }
