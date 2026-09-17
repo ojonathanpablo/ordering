@@ -8,6 +8,7 @@ import com.shop.ordering.domain.valueobject.id.ItemPedidoId;
 import com.shop.ordering.domain.valueobject.id.ProdutoId;
 import lombok.Builder;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 public class ItemPedido {
@@ -25,9 +26,9 @@ public class ItemPedido {
 
     @Builder(builderClassName = "ItemPedidoExistenteBuilder", builderMethodName = "existente")
     public ItemPedido(ItemPedidoId id, PedidoId pedidoId,
-                     ProdutoId produtoId, NomeProduto nomeProduto,
-                     Dinheiro preco, Quantidade quantidade,
-                     Dinheiro valorTotal) {
+                      ProdutoId produtoId, NomeProduto nomeProduto,
+                      Dinheiro preco, Quantidade quantidade,
+                      Dinheiro valorTotal) {
         this.setId(id);
         this.setPedidoId(pedidoId);
         this.setProdutoId(produtoId);
@@ -39,9 +40,9 @@ public class ItemPedido {
 
     @Builder(builderClassName = "ItemPedidoNovoBuilder", builderMethodName = "novo")
     private static ItemPedido criarNovo(PedidoId id,
-                                     ProdutoId produtoId, NomeProduto nomeProduto,
-                                     Dinheiro preco, Quantidade quantidade) {
-        return new ItemPedido(
+                                        ProdutoId produtoId, NomeProduto nomeProduto,
+                                        Dinheiro preco, Quantidade quantidade) {
+        ItemPedido itemPedido = new ItemPedido(
                 new ItemPedidoId(),
                 id,
                 produtoId,
@@ -50,6 +51,10 @@ public class ItemPedido {
                 quantidade,
                 Dinheiro.ZERO
         );
+
+        itemPedido.recalcularTotais();
+
+        return itemPedido;
     }
 
     public ProdutoId produtoId() {
@@ -78,6 +83,10 @@ public class ItemPedido {
 
     public Dinheiro valorTotal() {
         return valorTotal;
+    }
+
+    private void recalcularTotais() {
+        this.setValorTotal(this.preco().multiplicar(this.quantidade));
     }
 
     private void setNomeProduto(NomeProduto nomeProduto) {

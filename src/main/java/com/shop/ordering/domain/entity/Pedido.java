@@ -1,18 +1,19 @@
 package com.shop.ordering.domain.entity;
 
-import com.shop.ordering.domain.valueobject.InfoCobranca;
-import com.shop.ordering.domain.valueobject.Dinheiro;
-import com.shop.ordering.domain.valueobject.Quantidade;
-import com.shop.ordering.domain.valueobject.InfoEntrega;
+import com.shop.ordering.domain.exception.PedidoDataEntregaInvalidaException;
+import com.shop.ordering.domain.exception.PedidoNaoPodeSerRealizadoException;
+import com.shop.ordering.domain.exception.StatusPedidoNaoPodeSerAlterado;
+import com.shop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.id.ClienteId;
 import com.shop.ordering.domain.valueobject.id.PedidoId;
+import com.shop.ordering.domain.valueobject.id.ProdutoId;
 import lombok.Builder;
+import org.apache.commons.validator.routines.DomainValidator;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class Pedido {
 
@@ -39,14 +40,7 @@ public class Pedido {
     private Set<ItemPedido> itensPedido;
 
     @Builder(builderClassName = "PedidoExistenteBuilder", buildMethodName = "existente")
-    public Pedido(PedidoId id, ClienteId clienteId,
-                 Dinheiro valorTotal, Quantidade totalItens,
-                 OffsetDateTime realizadoEm, OffsetDateTime pagoEm,
-                 OffsetDateTime canceladoEm, OffsetDateTime prontoEm,
-                 InfoCobranca cobranca, InfoEntrega entrega,
-                 StatusPedido status, MetodoPagamento metodoPagamento,
-                 Dinheiro custoEntrega, LocalDate dataEntregaPrevista,
-                 Set<ItemPedido> itens) {
+    public Pedido(PedidoId id, ClienteId clienteId, Dinheiro valorTotal, Quantidade totalItens, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, OffsetDateTime prontoEm, InfoCobranca cobranca, InfoEntrega entrega, StatusPedido status, MetodoPagamento metodoPagamento, Dinheiro custoEntrega, LocalDate dataEntregaPrevista, Set<ItemPedido> itens) {
 
         this.setId(id);
         this.setClienteId(clienteId);
@@ -66,23 +60,78 @@ public class Pedido {
     }
 
     public static Pedido rascunho(ClienteId clienteId) {
-        return new Pedido(
-                new PedidoId(),
-                clienteId,
-                Dinheiro.ZERO,
-                Quantidade.ZERO,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                StatusPedido.RASCUNHO,
-                null,
-                null,
-                null,
-                new HashSet<>()
-        );
+        return new Pedido(new PedidoId(), clienteId, Dinheiro.ZERO, Quantidade.ZERO, null, null, null, null, null, null, StatusPedido.RASCUNHO, null, null, null, new HashSet<>());
+    }
+
+    public void adicionaItemPedido(ProdutoId produtoId, NomeProduto nomeProduto, Dinheiro preco, Quantidade quantidade) {
+
+        ItemPedido itemPedido = ItemPedido.novo().id(this.id).preco(preco).quantidade(quantidade).nomeProduto(nomeProduto).produtoId(produtoId).build();
+
+        if (this.itensPedido == null) {
+            this.itensPedido = new HashSet<>();
+        }
+
+        this.itensPedido.add(itemPedido);
+
+        recalcularTotais();
+
+    }
+
+    public void realizar() {
+        Objects.requireNonNull(this.infoEntrega());
+        Objects.requireNonNull(this.infoCobranca());
+        Objects.requireNonNull(this.dataEntregaPrevista());
+        Objects.requireNonNull(this.custoEntrega());
+        Objects.requireNonNull(this.metodoPagamento());
+        Objects.requireNonNull(this.itensPedido());
+
+        if (this.itensPedido().isEmpty()) {
+            throw new PedidoNaoPodeSerRealizadoException(this.id());
+        }
+
+        this.setRealizadoEm(OffsetDateTime.now());
+        this.mudarStatus(StatusPedido.REALIZADO);
+    }
+
+    public void marcaPago(){
+        this.setPagoEm(OffsetDateTime.now());
+        this.mudarStatus(StatusPedido.PAGO);
+    }
+
+    public void alterarMetodoPagamento(MetodoPagamento metodoPagamento) {
+        Objects.requireNonNull(metodoPagamento);
+        this.setMetodoPagamento(metodoPagamento);
+    }
+
+    public void alterarInfoCobranca(InfoCobranca infoCobranca) {
+        Objects.requireNonNull(infoCobranca);
+        this.setInfoCobranca(infoCobranca);
+    }
+
+    public void alterarInfoEntrega(InfoEntrega infoEntrega, Dinheiro custoEntrega, LocalDate dataEntregaPrevista) {
+        Objects.requireNonNull(infoEntrega);
+        Objects.requireNonNull(custoEntrega);
+        Objects.requireNonNull(dataEntregaPrevista);
+
+        if (dataEntregaPrevista.isBefore(LocalDate.now())) {
+            throw new PedidoDataEntregaInvalidaException(this.id(), dataEntregaPrevista);
+        }
+
+        this.setInfoEntrega(infoEntrega);
+        this.setCustoEntrega(custoEntrega);
+        this.setDataEntregaPrevista(dataEntregaPrevista);
+    }
+
+    public boolean isRascunho() {
+        return StatusPedido.RASCUNHO.equals(this.statusPedido);
+    }
+
+    public boolean isRealizado() {
+        return StatusPedido.REALIZADO.equals(this.statusPedido);
+    }
+
+    public boolean isPago() {
+        return StatusPedido.PAGO.equals(this.statusPedido);
     }
 
     public OffsetDateTime realizadoEm() {
@@ -142,8 +191,36 @@ public class Pedido {
     }
 
     public Set<ItemPedido> itensPedido() {
-        return itensPedido;
+        return Collections.unmodifiableSet(this.itensPedido);
     }
+
+    private void recalcularTotais() {
+        BigDecimal valorTotalItens = this.itensPedido.stream().map(i -> i.valorTotal().valor()).reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Integer totalQuantidadeItens = this.itensPedido.stream().map(i -> i.quantidade().valor()).reduce(0, Integer::sum);
+
+        BigDecimal custoEntrega;
+        if (this.custoEntrega == null) {
+            custoEntrega = BigDecimal.ZERO;
+        } else {
+            custoEntrega = this.custoEntrega.valor();
+        }
+
+        BigDecimal valorTotal = valorTotalItens.add(custoEntrega);
+
+        this.setValorTotal(new Dinheiro(valorTotal));
+        this.setQuantidade(new Quantidade(totalQuantidadeItens));
+
+    }
+
+    private void mudarStatus(StatusPedido newStatus) {
+        Objects.requireNonNull(newStatus);
+        if (this.statusPedido().naoPodeMudarPara(newStatus)) {
+            throw new StatusPedidoNaoPodeSerAlterado(this.id, this.statusPedido(), newStatus);
+        }
+        this.setStatusPedido(newStatus);
+    }
+
 
     private void setClienteId(ClienteId clienteId) {
         Objects.requireNonNull(clienteId);
