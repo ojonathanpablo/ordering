@@ -13,4 +13,5 @@ public class MensagensErro {
     public static final String ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_METODO_PAGAMENTO = "Order %s cannot be placed without payment method";
     public static final String ERRO_PEDIDO_NAO_CONTEM_ITEM = "Order %s does not contain item %s";
     public static final String ERRO_PRODUTO_FORA_DE_ESTOQUE = "Product %s is out of stock";
+    public static final String ERRO_PEDIDO_NAO_PODE_SER_ALTERADO = "Order %s with status %s cannot be edited";
 }

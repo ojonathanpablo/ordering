@@ -2,6 +2,7 @@ package com.shop.ordering.domain.entity;
 
 import com.shop.ordering.domain.exception.PedidoDataEntregaInvalidaException;
 import com.shop.ordering.domain.exception.PedidoNaoComtenItemException;
+import com.shop.ordering.domain.exception.PedidoNaoPodeSerAlteradoException;
 import com.shop.ordering.domain.exception.PedidoNaoPodeSerRealizadoException;
 import com.shop.ordering.domain.exception.StatusPedidoNaoPodeSerAlterado;
 import com.shop.ordering.domain.valueobject.*;
@@ -73,6 +74,8 @@ public class Pedido {
 
     public void adicionaItemPedido(Produto produto,
                                    Quantidade quantidade) {
+        this.verificarSePodeAlterar();
+
         Objects.requireNonNull(produto);
         Objects.requireNonNull(quantidade);
 
@@ -107,6 +110,8 @@ public class Pedido {
     }
 
     public void alterarQuantidadeItem(ItemPedidoId itemPedidoId, Quantidade quantidade) {
+        this.verificarSePodeAlterar();
+
         Objects.requireNonNull(itemPedidoId);
         Objects.requireNonNull(quantidade);
 
@@ -118,16 +123,22 @@ public class Pedido {
     }
 
     public void alterarMetodoPagamento(MetodoPagamento metodoPagamento) {
+        this.verificarSePodeAlterar();
+
         Objects.requireNonNull(metodoPagamento);
         this.setMetodoPagamento(metodoPagamento);
     }
 
     public void alterarInfoCobranca(Cobranca cobranca) {
+        this.verificarSePodeAlterar();
+
         Objects.requireNonNull(cobranca);
         this.setCobranca(cobranca);
     }
 
     public void alterarInfoEntrega(Entrega entrega) {
+        this.verificarSePodeAlterar();
+
         Objects.requireNonNull(entrega);
 
         if (entrega.dataPrevista().isBefore(LocalDate.now())) {
@@ -227,6 +238,12 @@ public class Pedido {
             throw new StatusPedidoNaoPodeSerAlterado(this.id, this.statusPedido(), newStatus);
         }
         this.setStatusPedido(newStatus);
+    }
+
+    private void verificarSePodeAlterar() {
+        if (!this.isRascunho()) {
+            throw new PedidoNaoPodeSerAlteradoException(this.id(), this.statusPedido());
+        }
     }
 
     private void verificarPodeRealizar() {
