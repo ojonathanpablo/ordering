@@ -122,6 +122,17 @@ public class Pedido {
 
     }
 
+    public void removeItemPedido(ItemPedidoId itemPedidoId) {
+        Objects.requireNonNull(itemPedidoId);
+
+        this.verificarSePodeAlterar();
+
+        ItemPedido itemPedido = localizarItemPedido(itemPedidoId);
+        this.itensPedido.remove(itemPedido);
+
+        this.recalcularTotais();
+    }
+
     public void alterarMetodoPagamento(MetodoPagamento metodoPagamento) {
         this.verificarSePodeAlterar();
 
