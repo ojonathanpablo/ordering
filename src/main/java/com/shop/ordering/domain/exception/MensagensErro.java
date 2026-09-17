@@ -10,8 +10,6 @@ public class MensagensErro {
     public static final String ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_ITENS = "Order %s cannot be placed without items";
     public static final String ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_INFO_ENTREGA = "Order %s cannot be placed without shipping info";
     public static final String ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_INFO_COBRANCA = "Order %s cannot be placed without billing info";
-    public static final String ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_DATA_ENTREGA = "Order %s cannot be placed without expected delivery date";
-    public static final String ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_CUSTO_ENTREGA = "Order %s cannot be placed without shipping cost";
     public static final String ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_METODO_PAGAMENTO = "Order %s cannot be placed without payment method";
     public static final String ERRO_PEDIDO_NAO_CONTEM_ITEM = "Order %s does not contain item %s";
     public static final String ERRO_PRODUTO_FORA_DE_ESTOQUE = "Product %s is out of stock";

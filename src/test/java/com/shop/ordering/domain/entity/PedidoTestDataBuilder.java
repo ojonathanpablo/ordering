@@ -2,7 +2,6 @@ package com.shop.ordering.domain.entity;
 
 import com.shop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.id.ClienteId;
-import com.shop.ordering.domain.valueobject.id.ProdutoId;
 
 import java.time.LocalDate;
 
@@ -12,11 +11,8 @@ public class PedidoTestDataBuilder {
 
     private MetodoPagamento metodoPagamento = MetodoPagamento.SALDO_GATEWAY;
 
-    private Dinheiro custoEntrega = new Dinheiro("10.00");
-    private LocalDate dataEntregaPrevista = LocalDate.now().plusWeeks(1);
-
-    private InfoEntrega infoEntrega = umaInfoEntrega();
-    private InfoCobranca infoCobranca = umaInfoCobranca();
+    private Entrega entrega = umaEntrega();
+    private Cobranca cobranca = umaCobranca();
 
     private boolean comItens = true;
 
@@ -32,8 +28,8 @@ public class PedidoTestDataBuilder {
 
     public Pedido build() {
         Pedido pedido = Pedido.rascunho(clienteId);
-        pedido.alterarInfoEntrega(infoEntrega, custoEntrega, dataEntregaPrevista);
-        pedido.alterarInfoCobranca(infoCobranca);
+        pedido.alterarInfoEntrega(entrega);
+        pedido.alterarInfoCobranca(cobranca);
         pedido.alterarMetodoPagamento(metodoPagamento);
 
         if (comItens) {
@@ -65,20 +61,27 @@ public class PedidoTestDataBuilder {
         return pedido;
     }
 
-    public static InfoCobranca umaInfoCobranca() {
-        return InfoCobranca.builder()
-                .endereco(umEndereco())
+    public static Recebedor umRecebedor() {
+        return Recebedor.builder()
+                .nomeCompleto(new NomeCompleto("John", "Doe"))
                 .documento(new Documento("225-09-1992"))
-                .telefone(new Telefone("123-111-9911"))
-                .nomeCompleto(new NomeCompleto("John", "Doe")).build();
+                .telefone(new Telefone("123-111-9911")).build();
     }
 
-    public static InfoEntrega umaInfoEntrega() {
-        return InfoEntrega.builder()
+    public static Cobranca umaCobranca() {
+        return Cobranca.builder()
                 .endereco(umEndereco())
-                .nomeCompleto(new NomeCompleto("John", "Doe"))
-                .documento(new Documento("112-33-2321"))
-                .telefone(new Telefone("111-441-1244")).build();
+                .recebedor(umRecebedor())
+                .build();
+    }
+
+    public static Entrega umaEntrega() {
+        return Entrega.builder()
+                .endereco(umEndereco())
+                .recebedor(umRecebedor())
+                .custo(new Dinheiro("10.00"))
+                .dataPrevista(LocalDate.now().plusWeeks(1))
+                .build();
     }
 
     public static Endereco umEndereco() {
@@ -102,23 +105,13 @@ public class PedidoTestDataBuilder {
         return this;
     }
 
-    public PedidoTestDataBuilder custoEntrega(Dinheiro custoEntrega) {
-        this.custoEntrega = custoEntrega;
+    public PedidoTestDataBuilder entrega(Entrega entrega) {
+        this.entrega = entrega;
         return this;
     }
 
-    public PedidoTestDataBuilder dataEntregaPrevista(LocalDate dataEntregaPrevista) {
-        this.dataEntregaPrevista = dataEntregaPrevista;
-        return this;
-    }
-
-    public PedidoTestDataBuilder infoEntrega(InfoEntrega infoEntrega) {
-        this.infoEntrega = infoEntrega;
-        return this;
-    }
-
-    public PedidoTestDataBuilder infoCobranca(InfoCobranca infoCobranca) {
-        this.infoCobranca = infoCobranca;
+    public PedidoTestDataBuilder cobranca(Cobranca cobranca) {
+        this.cobranca = cobranca;
         return this;
     }
 

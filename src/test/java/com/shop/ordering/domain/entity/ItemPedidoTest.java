@@ -1,22 +1,32 @@
 package com.shop.ordering.domain.entity;
 
-
-import com.shop.ordering.domain.valueobject.Dinheiro;
-import com.shop.ordering.domain.valueobject.NomeProduto;
+import com.shop.ordering.domain.valueobject.Produto;
 import com.shop.ordering.domain.valueobject.Quantidade;
 import com.shop.ordering.domain.valueobject.id.PedidoId;
-import com.shop.ordering.domain.valueobject.id.ProdutoId;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class ItemPedidoTest {
 
-
     @Test
-    public void deveGerar() {
-        ItemPedido.novo()
-                .produto(ProdutoTestDataBuilder.umProduto().build())
-                .pedidoId(new PedidoId())
-                .quantidade(new Quantidade(1))
+    public void deveGerarItemPedidoNovo() {
+        Produto produto = ProdutoTestDataBuilder.umProduto().build();
+        Quantidade quantidade = new Quantidade(1);
+        PedidoId pedidoId = new PedidoId();
+
+        ItemPedido itemPedido = ItemPedido.novo()
+                .produto(produto)
+                .quantidade(quantidade)
+                .pedidoId(pedidoId)
                 .build();
+
+        Assertions.assertWith(itemPedido,
+                i -> Assertions.assertThat(i.itemPedidoId()).isNotNull(),
+                i -> Assertions.assertThat(i.produtoId()).isEqualTo(produto.produtoId()),
+                i -> Assertions.assertThat(i.nomeProduto()).isEqualTo(produto.nomeProduto()),
+                i -> Assertions.assertThat(i.preco()).isEqualTo(produto.preco()),
+                i -> Assertions.assertThat(i.quantidade()).isEqualTo(quantidade),
+                i -> Assertions.assertThat(i.pedidoId()).isEqualTo(pedidoId)
+        );
     }
 }

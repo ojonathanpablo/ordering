@@ -28,18 +28,6 @@ public class PedidoNaoPodeSerRealizadoException extends ExcecaoDominio {
         );
     }
 
-    public static PedidoNaoPodeSerRealizadoException semDataEntregaPrevista(PedidoId id) {
-        return new PedidoNaoPodeSerRealizadoException(
-                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_DATA_ENTREGA, id)
-        );
-    }
-
-    public static PedidoNaoPodeSerRealizadoException semCustoEntrega(PedidoId id) {
-        return new PedidoNaoPodeSerRealizadoException(
-                String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_CUSTO_ENTREGA, id)
-        );
-    }
-
     public static PedidoNaoPodeSerRealizadoException semMetodoPagamento(PedidoId id) {
         return new PedidoNaoPodeSerRealizadoException(
                 String.format(ERRO_PEDIDO_NAO_PODE_SER_REALIZADO_SEM_METODO_PAGAMENTO, id)

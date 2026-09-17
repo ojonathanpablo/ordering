@@ -5,9 +5,6 @@ import com.shop.ordering.domain.exception.ProdutoEsgotadoException;
 import com.shop.ordering.domain.exception.StatusPedidoNaoPodeSerAlterado;
 import com.shop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.id.ClienteId;
-import com.shop.ordering.domain.valueobject.id.PedidoId;
-import com.shop.ordering.domain.valueobject.id.ProdutoId;
-import org.apache.commons.validator.routines.DomainValidator;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -17,8 +14,26 @@ import java.util.Set;
 class PedidoTest {
 
     @Test
-    public void deveGerar() {
-        Pedido pedido = Pedido.rascunho(new ClienteId());
+    public void deveGerarPedidoRascunho() {
+        ClienteId clienteId = new ClienteId();
+        Pedido pedido = Pedido.rascunho(clienteId);
+
+        Assertions.assertWith(pedido,
+                p -> Assertions.assertThat(p.id()).isNotNull(),
+                p -> Assertions.assertThat(p.clienteId()).isEqualTo(clienteId),
+                p -> Assertions.assertThat(p.valorTotal()).isEqualTo(Dinheiro.ZERO),
+                p -> Assertions.assertThat(p.quantidade()).isEqualTo(Quantidade.ZERO),
+                p -> Assertions.assertThat(p.isRascunho()).isTrue(),
+                p -> Assertions.assertThat(p.itensPedido()).isEmpty(),
+
+                p -> Assertions.assertThat(p.realizadoEm()).isNull(),
+                p -> Assertions.assertThat(p.pagoEm()).isNull(),
+                p -> Assertions.assertThat(p.canceladoEm()).isNull(),
+                p -> Assertions.assertThat(p.prontoEm()).isNull(),
+                p -> Assertions.assertThat(p.cobranca()).isNull(),
+                p -> Assertions.assertThat(p.entrega()).isNull(),
+                p -> Assertions.assertThat(p.metodoPagamento()).isNull()
+        );
     }
 
     @Test
@@ -59,10 +74,10 @@ class PedidoTest {
         Produto memoria = ProdutoTestDataBuilder.umProdutoAltMemoriaRam().build();
         pedido.adicionaItemPedido(memoria, new Quantidade(2));
 
-        Produto descktop = ProdutoTestDataBuilder.umProdutoIndisponivel().build();
-        pedido.adicionaItemPedido(descktop, new Quantidade(1));
+        Produto notebook = ProdutoTestDataBuilder.umProduto().build();
+        pedido.adicionaItemPedido(notebook, new Quantidade(1));
 
-        Assertions.assertThat(pedido.valorTotal()).isEqualTo(new Dinheiro("5600"));
+        Assertions.assertThat(pedido.valorTotal()).isEqualTo(new Dinheiro("3600"));
         Assertions.assertThat(pedido.quantidade()).isEqualTo(new Quantidade(3));
 
     }
@@ -99,7 +114,7 @@ class PedidoTest {
     }
 
     @Test
-    public void dadoPedidoRascunho_quandoAlterarInfoCobranca_devePermitirAlteracao() {
+    public void dadoPedidoRascunho_quandoAlterarCobranca_devePermitirAlteracao() {
         Pedido pedido = Pedido.rascunho(new ClienteId());
 
         Endereco endereco = Endereco.builder()
@@ -112,27 +127,29 @@ class PedidoTest {
                 .cep(new CEP("79911"))
                 .build();
 
-        InfoCobranca infoCobranca = InfoCobranca.builder()
-                .endereco(endereco)
+        Recebedor recebedor = Recebedor.builder()
+                .nomeCompleto(new NomeCompleto("John", "Doe"))
                 .documento(new Documento("225-09-1992"))
                 .telefone(new Telefone("123-111-9911"))
-                .nomeCompleto(new NomeCompleto("John", "Doe"))
                 .build();
 
-        pedido.alterarInfoCobranca(infoCobranca);
-
-        InfoCobranca infoCobrancaEsperada = InfoCobranca.builder()
+        Cobranca cobranca = Cobranca.builder()
                 .endereco(endereco)
-                .documento(new Documento("225-09-1992"))
-                .telefone(new Telefone("123-111-9911"))
-                .nomeCompleto(new NomeCompleto("John", "Doe"))
+                .recebedor(recebedor)
                 .build();
 
-        Assertions.assertThat(pedido.infoCobranca()).isEqualTo(infoCobrancaEsperada);
+        pedido.alterarInfoCobranca(cobranca);
+
+        Cobranca cobrancaEsperada = Cobranca.builder()
+                .endereco(endereco)
+                .recebedor(recebedor)
+                .build();
+
+        Assertions.assertThat(pedido.cobranca()).isEqualTo(cobrancaEsperada);
     }
 
     @Test
-    public void dadoPedidoRascunho_quandoAlterarInfoEntrega_devePermitirAlteracao() {
+    public void dadoPedidoRascunho_quandoAlterarEntrega_devePermitirAlteracao() {
         Pedido pedido = Pedido.rascunho(new ClienteId());
 
         Endereco endereco = Endereco.builder()
@@ -145,25 +162,26 @@ class PedidoTest {
                 .cep(new CEP("79911"))
                 .build();
 
-        InfoEntrega infoEntrega = InfoEntrega.builder()
-                .endereco(endereco)
+        Recebedor recebedor = Recebedor.builder()
+                .nomeCompleto(new NomeCompleto("John", "Doe"))
                 .documento(new Documento("225-09-1992"))
                 .telefone(new Telefone("123-111-9911"))
-                .nomeCompleto(new NomeCompleto("John", "Doe"))
                 .build();
 
-        Dinheiro custoEntrega = new Dinheiro("10");
-        LocalDate dataEntregaPrevista = LocalDate.now().plusDays(2);
+        Entrega entrega = Entrega.builder()
+                .endereco(endereco)
+                .recebedor(recebedor)
+                .custo(new Dinheiro("10"))
+                .dataPrevista(LocalDate.now().plusDays(2))
+                .build();
 
-        pedido.alterarInfoEntrega(infoEntrega, custoEntrega, dataEntregaPrevista);
+        pedido.alterarInfoEntrega(entrega);
 
-        Assertions.assertThat(pedido.infoEntrega()).isEqualTo(infoEntrega);
-        Assertions.assertThat(pedido.custoEntrega()).isEqualTo(custoEntrega);
-        Assertions.assertThat(pedido.dataEntregaPrevista()).isEqualTo(dataEntregaPrevista);
+        Assertions.assertThat(pedido.entrega()).isEqualTo(entrega);
     }
 
     @Test
-    public void dadoPedidoRascunho_quandoAlterarInfoEntregaComDataPassada_deveGerarExcecao() {
+    public void dadoPedidoRascunho_quandoAlterarEntregaComDataPassada_deveGerarExcecao() {
         Pedido pedido = Pedido.rascunho(new ClienteId());
 
         Endereco endereco = Endereco.builder()
@@ -176,18 +194,21 @@ class PedidoTest {
                 .cep(new CEP("79911"))
                 .build();
 
-        InfoEntrega infoEntrega = InfoEntrega.builder()
-                .endereco(endereco)
+        Recebedor recebedor = Recebedor.builder()
+                .nomeCompleto(new NomeCompleto("John", "Doe"))
                 .documento(new Documento("225-09-1992"))
                 .telefone(new Telefone("123-111-9911"))
-                .nomeCompleto(new NomeCompleto("John", "Doe"))
                 .build();
 
-        Dinheiro custoEntrega = new Dinheiro("10");
-        LocalDate dataEntregaPassada = LocalDate.now().minusDays(2);
+        Entrega entrega = Entrega.builder()
+                .endereco(endereco)
+                .recebedor(recebedor)
+                .custo(new Dinheiro("10"))
+                .dataPrevista(LocalDate.now().minusDays(2))
+                .build();
 
         Assertions.assertThatExceptionOfType(PedidoDataEntregaInvalidaException.class)
-                .isThrownBy(() -> pedido.alterarInfoEntrega(infoEntrega, custoEntrega, dataEntregaPassada));
+                .isThrownBy(() -> pedido.alterarInfoEntrega(entrega));
     }
 
     @Test

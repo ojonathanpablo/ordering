@@ -8,7 +8,6 @@ import com.shop.ordering.domain.valueobject.*;
 import com.shop.ordering.domain.valueobject.id.ClienteId;
 import com.shop.ordering.domain.valueobject.id.ItemPedidoId;
 import com.shop.ordering.domain.valueobject.id.PedidoId;
-import com.shop.ordering.domain.valueobject.id.ProdutoId;
 import lombok.Builder;
 
 import java.math.BigDecimal;
@@ -29,19 +28,16 @@ public class Pedido {
     private OffsetDateTime canceladoEm;
     private OffsetDateTime prontoEm;
 
-    private InfoCobranca infoCobranca;
-    private InfoEntrega infoEntrega;
+    private Cobranca cobranca;
+    private Entrega entrega;
 
     private StatusPedido statusPedido;
     private MetodoPagamento metodoPagamento;
 
-    private Dinheiro custoEntrega;
-    private LocalDate dataEntregaPrevista;
-
     private Set<ItemPedido> itensPedido;
 
     @Builder(builderClassName = "PedidoExistenteBuilder", buildMethodName = "existente")
-    public Pedido(PedidoId id, ClienteId clienteId, Dinheiro valorTotal, Quantidade totalItens, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, OffsetDateTime prontoEm, InfoCobranca cobranca, InfoEntrega entrega, StatusPedido status, MetodoPagamento metodoPagamento, Dinheiro custoEntrega, LocalDate dataEntregaPrevista, Set<ItemPedido> itens) {
+    public Pedido(PedidoId id, ClienteId clienteId, Dinheiro valorTotal, Quantidade totalItens, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, OffsetDateTime prontoEm, Cobranca cobranca, Entrega entrega, StatusPedido status, MetodoPagamento metodoPagamento, Set<ItemPedido> itens) {
 
         this.setId(id);
         this.setClienteId(clienteId);
@@ -51,17 +47,28 @@ public class Pedido {
         this.setPagoEm(pagoEm);
         this.setCanceladoEm(canceladoEm);
         this.setProntoEm(prontoEm);
-        this.setInfoCobranca(cobranca);
-        this.setInfoEntrega(entrega);
+        this.setCobranca(cobranca);
+        this.setEntrega(entrega);
         this.setStatusPedido(status);
         this.setMetodoPagamento(metodoPagamento);
-        this.setCustoEntrega(custoEntrega);
-        this.setDataEntregaPrevista(dataEntregaPrevista);
         this.setItensPedido(itens);
     }
 
     public static Pedido rascunho(ClienteId clienteId) {
-        return new Pedido(new PedidoId(), clienteId, Dinheiro.ZERO, Quantidade.ZERO, null, null, null, null, null, null, StatusPedido.RASCUNHO, null, null, null, new HashSet<>());
+        return new Pedido(
+                new PedidoId(),
+                clienteId,
+                Dinheiro.ZERO,
+                Quantidade.ZERO,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                StatusPedido.RASCUNHO,
+                null,
+                new HashSet<>());
     }
 
     public void adicionaItemPedido(Produto produto,
@@ -110,33 +117,24 @@ public class Pedido {
 
     }
 
-
-    public void alterarFormaPagamento() {
-        //TODO
-    }
-
     public void alterarMetodoPagamento(MetodoPagamento metodoPagamento) {
         Objects.requireNonNull(metodoPagamento);
         this.setMetodoPagamento(metodoPagamento);
     }
 
-    public void alterarInfoCobranca(InfoCobranca infoCobranca) {
-        Objects.requireNonNull(infoCobranca);
-        this.setInfoCobranca(infoCobranca);
+    public void alterarInfoCobranca(Cobranca cobranca) {
+        Objects.requireNonNull(cobranca);
+        this.setCobranca(cobranca);
     }
 
-    public void alterarInfoEntrega(InfoEntrega infoEntrega, Dinheiro custoEntrega, LocalDate dataEntregaPrevista) {
-        Objects.requireNonNull(infoEntrega);
-        Objects.requireNonNull(custoEntrega);
-        Objects.requireNonNull(dataEntregaPrevista);
+    public void alterarInfoEntrega(Entrega entrega) {
+        Objects.requireNonNull(entrega);
 
-        if (dataEntregaPrevista.isBefore(LocalDate.now())) {
-            throw new PedidoDataEntregaInvalidaException(this.id(), dataEntregaPrevista);
+        if (entrega.dataPrevista().isBefore(LocalDate.now())) {
+            throw new PedidoDataEntregaInvalidaException(this.id(), entrega.dataPrevista());
         }
 
-        this.setInfoEntrega(infoEntrega);
-        this.setCustoEntrega(custoEntrega);
-        this.setDataEntregaPrevista(dataEntregaPrevista);
+        this.setEntrega(entrega);
     }
 
 
@@ -184,12 +182,12 @@ public class Pedido {
         return prontoEm;
     }
 
-    public InfoCobranca infoCobranca() {
-        return infoCobranca;
+    public Cobranca cobranca() {
+        return cobranca;
     }
 
-    public InfoEntrega infoEntrega() {
-        return infoEntrega;
+    public Entrega entrega() {
+        return entrega;
     }
 
     public StatusPedido statusPedido() {
@@ -198,14 +196,6 @@ public class Pedido {
 
     public MetodoPagamento metodoPagamento() {
         return metodoPagamento;
-    }
-
-    public Dinheiro custoEntrega() {
-        return custoEntrega;
-    }
-
-    public LocalDate dataEntregaPrevista() {
-        return dataEntregaPrevista;
     }
 
     public Set<ItemPedido> itensPedido() {
@@ -218,10 +208,10 @@ public class Pedido {
         Integer totalQuantidadeItens = this.itensPedido.stream().map(i -> i.quantidade().valor()).reduce(0, Integer::sum);
 
         BigDecimal custoEntrega;
-        if (this.custoEntrega == null) {
+        if (this.entrega() == null) {
             custoEntrega = BigDecimal.ZERO;
         } else {
-            custoEntrega = this.custoEntrega.valor();
+            custoEntrega = this.entrega.custo().valor();
         }
 
         BigDecimal valorTotal = valorTotalItens.add(custoEntrega);
@@ -240,20 +230,12 @@ public class Pedido {
     }
 
     private void verificarPodeRealizar() {
-        if (this.infoEntrega() == null) {
+        if (this.entrega() == null) {
             throw PedidoNaoPodeSerRealizadoException.semInfoEntrega(this.id());
         }
 
-        if (this.infoCobranca() == null) {
+        if (this.cobranca() == null) {
             throw PedidoNaoPodeSerRealizadoException.semInfoCobranca(this.id());
-        }
-
-        if (this.dataEntregaPrevista() == null) {
-            throw PedidoNaoPodeSerRealizadoException.semDataEntregaPrevista(this.id());
-        }
-
-        if (this.custoEntrega() == null) {
-            throw PedidoNaoPodeSerRealizadoException.semCustoEntrega(this.id());
         }
 
         if (this.metodoPagamento() == null) {
@@ -311,12 +293,12 @@ public class Pedido {
         this.prontoEm = prontoEm;
     }
 
-    private void setInfoCobranca(InfoCobranca infoCobranca) {
-        this.infoCobranca = infoCobranca;
+    private void setCobranca(Cobranca cobranca) {
+        this.cobranca = cobranca;
     }
 
-    private void setInfoEntrega(InfoEntrega infoEntrega) {
-        this.infoEntrega = infoEntrega;
+    private void setEntrega(Entrega entrega) {
+        this.entrega = entrega;
     }
 
     private void setStatusPedido(StatusPedido statusPedido) {
@@ -326,14 +308,6 @@ public class Pedido {
 
     private void setMetodoPagamento(MetodoPagamento metodoPagamento) {
         this.metodoPagamento = metodoPagamento;
-    }
-
-    private void setCustoEntrega(Dinheiro custoEntrega) {
-        this.custoEntrega = custoEntrega;
-    }
-
-    private void setDataEntregaPrevista(LocalDate dataEntregaPrevista) {
-        this.dataEntregaPrevista = dataEntregaPrevista;
     }
 
     private void setItensPedido(Set<ItemPedido> itensPedido) {
