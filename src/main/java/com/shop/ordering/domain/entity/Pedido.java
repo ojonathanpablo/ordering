@@ -109,6 +109,11 @@ public class Pedido {
         this.mudarStatus(StatusPedido.PAGO);
     }
 
+    public void marcaPronto() {
+        this.mudarStatus(StatusPedido.PRONTO);
+        this.setProntoEm(OffsetDateTime.now());
+    }
+
     public void alterarQuantidadeItem(ItemPedidoId itemPedidoId, Quantidade quantidade) {
         this.verificarSePodeAlterar();
 
@@ -170,6 +175,10 @@ public class Pedido {
 
     public boolean isPago() {
         return StatusPedido.PAGO.equals(this.statusPedido);
+    }
+
+    public boolean isPronto() {
+        return StatusPedido.PRONTO.equals(this.statusPedido);
     }
 
     public OffsetDateTime realizadoEm() {

@@ -53,6 +53,9 @@ public class PedidoTestDataBuilder {
                 pedido.marcaPago();
             }
             case PRONTO -> {
+                pedido.realizar();
+                pedido.marcaPago();
+                pedido.marcaPronto();
             }
             case CANCELADO -> {
             }
