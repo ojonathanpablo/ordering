@@ -58,6 +58,7 @@ public class PedidoTestDataBuilder {
                 pedido.marcaPronto();
             }
             case CANCELADO -> {
+                pedido.cancelar();
             }
         }
 

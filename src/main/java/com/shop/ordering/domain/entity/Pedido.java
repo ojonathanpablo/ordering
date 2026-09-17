@@ -114,6 +114,11 @@ public class Pedido {
         this.setProntoEm(OffsetDateTime.now());
     }
 
+    public void cancelar() {
+        this.mudarStatus(StatusPedido.CANCELADO);
+        this.setCanceladoEm(OffsetDateTime.now());
+    }
+
     public void alterarQuantidadeItem(ItemPedidoId itemPedidoId, Quantidade quantidade) {
         this.verificarSePodeAlterar();
 
@@ -179,6 +184,10 @@ public class Pedido {
 
     public boolean isPronto() {
         return StatusPedido.PRONTO.equals(this.statusPedido);
+    }
+
+    public boolean isCancelado() {
+        return StatusPedido.CANCELADO.equals(this.statusPedido);
     }
 
     public OffsetDateTime realizadoEm() {
