@@ -14,4 +14,7 @@ public class MensagensErro {
     public static final String ERRO_PEDIDO_NAO_CONTEM_ITEM = "Order %s does not contain item %s";
     public static final String ERRO_PRODUTO_FORA_DE_ESTOQUE = "Product %s is out of stock";
     public static final String ERRO_PEDIDO_NAO_PODE_SER_ALTERADO = "Order %s with status %s cannot be edited";
+    public static final String ERRO_CARRINHO_COMPRAS_NAO_CONTEM_ITEM = "Shopping Cart %s does not contain item %s";
+    public static final String ERRO_CARRINHO_COMPRAS_NAO_CONTEM_PRODUTO = "Shopping Cart %s does not contain product %s";
+    public static final String ERRO_CARRINHO_COMPRAS_ITEM_PRODUTO_INCOMPATIVEL = "Shopping Cart %s cannot be updated, incompatible product %s";
 }
