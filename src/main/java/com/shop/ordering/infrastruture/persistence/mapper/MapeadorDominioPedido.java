@@ -3,10 +3,22 @@ package com.shop.ordering.infrastruture.persistence.mapper;
 import com.shop.ordering.domain.model.entity.MetodoPagamento;
 import com.shop.ordering.domain.model.entity.Pedido;
 import com.shop.ordering.domain.model.entity.StatusPedido;
+import com.shop.ordering.domain.model.valueobject.CEP;
+import com.shop.ordering.domain.model.valueobject.Cobranca;
 import com.shop.ordering.domain.model.valueobject.Dinheiro;
+import com.shop.ordering.domain.model.valueobject.Documento;
+import com.shop.ordering.domain.model.valueobject.Endereco;
+import com.shop.ordering.domain.model.valueobject.Entrega;
+import com.shop.ordering.domain.model.valueobject.NomeCompleto;
 import com.shop.ordering.domain.model.valueobject.Quantidade;
+import com.shop.ordering.domain.model.valueobject.Recebedor;
+import com.shop.ordering.domain.model.valueobject.Telefone;
 import com.shop.ordering.domain.model.valueobject.id.ClienteId;
 import com.shop.ordering.domain.model.valueobject.id.PedidoId;
+import com.shop.ordering.infrastruture.persistence.embeddable.CobrancaEmbeddable;
+import com.shop.ordering.infrastruture.persistence.embeddable.EnderecoEmbeddable;
+import com.shop.ordering.infrastruture.persistence.embeddable.EntregaEmbeddable;
+import com.shop.ordering.infrastruture.persistence.embeddable.RecebedorEmbeddable;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
 import org.springframework.stereotype.Component;
 
@@ -27,9 +39,64 @@ public class MapeadorDominioPedido {
                 .pagoEm(entidadePersistenciaPedido.getPagoEm())
                 .canceladoEm(entidadePersistenciaPedido.getCanceladoEm())
                 .prontoEm(entidadePersistenciaPedido.getProntoEm())
+                .cobranca(mapearCobranca(entidadePersistenciaPedido.getCobranca()))
+                .entrega(mapearEntrega(entidadePersistenciaPedido.getEntrega()))
                 .itens(new HashSet<>())
                 .versao(entidadePersistenciaPedido.getVersion())
                 .existente();
+    }
+
+    private Cobranca mapearCobranca(CobrancaEmbeddable cobrancaEmbeddable) {
+        if (cobrancaEmbeddable == null) {
+            return null;
+        }
+
+        NomeCompleto nomeCompleto = new NomeCompleto(cobrancaEmbeddable.getPrimeiroNome(), cobrancaEmbeddable.getUltimoNome());
+        Recebedor recebedor = new Recebedor(nomeCompleto,
+                new Documento(cobrancaEmbeddable.getDocumento()),
+                new Telefone(cobrancaEmbeddable.getTelefone()));
+
+        return new Cobranca(recebedor, mapearEndereco(cobrancaEmbeddable.getEndereco()));
+    }
+
+    private Entrega mapearEntrega(EntregaEmbeddable entregaEmbeddable) {
+        if (entregaEmbeddable == null) {
+            return null;
+        }
+
+        return new Entrega(
+                new Dinheiro(entregaEmbeddable.getCusto()),
+                entregaEmbeddable.getDataPrevista(),
+                mapearRecebedor(entregaEmbeddable.getRecebedor()),
+                mapearEndereco(entregaEmbeddable.getEndereco())
+        );
+    }
+
+    private Recebedor mapearRecebedor(RecebedorEmbeddable recebedorEmbeddable) {
+        if (recebedorEmbeddable == null) {
+            return null;
+        }
+
+        NomeCompleto nomeCompleto = new NomeCompleto(recebedorEmbeddable.getPrimeiroNome(), recebedorEmbeddable.getUltimoNome());
+        return new Recebedor(nomeCompleto,
+                new Documento(recebedorEmbeddable.getDocumento()),
+                new Telefone(recebedorEmbeddable.getTelefone()));
+    }
+
+    private Endereco mapearEndereco(EnderecoEmbeddable enderecoEmbeddable) {
+        if (enderecoEmbeddable == null) {
+            return null;
+        }
+
+        return Endereco.builder()
+                .rua(enderecoEmbeddable.getRua())
+                .numero(enderecoEmbeddable.getNumero())
+                .complemento(enderecoEmbeddable.getComplemento())
+                .bairro(enderecoEmbeddable.getBairro())
+                .cidade(enderecoEmbeddable.getCidade())
+                .estado(enderecoEmbeddable.getEstado())
+                .cep(new CEP(enderecoEmbeddable.getCep()))
+                .build();
     }
 
 }
