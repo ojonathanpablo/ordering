@@ -6,11 +6,11 @@ import java.util.Optional;
 
 public interface Repository<T extends RaizDeAgregado<ID>, ID> {
 
-    Optional<T> ofId(ID id);
+    Optional<T> porId(ID id);
 
-    boolean exists(ID id);
+    boolean existe(ID id);
 
-    void add(T raizDeAgregado);
+    void adicionar(T raizDeAgregado);
 
-    int count();
+    int contar();
 }

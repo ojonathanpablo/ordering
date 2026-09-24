@@ -37,10 +37,13 @@ public class Pedido implements RaizDeAgregado<PedidoId> {
 
     private Set<ItemPedido> itensPedido;
 
+    private Long versao;
+
     @Builder(builderClassName = "PedidoExistenteBuilder", buildMethodName = "existente")
-    public Pedido(PedidoId id, ClienteId clienteId, Dinheiro valorTotal, Quantidade totalItens, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, OffsetDateTime prontoEm, Cobranca cobranca, Entrega entrega, StatusPedido status, MetodoPagamento metodoPagamento, Set<ItemPedido> itens) {
+    public Pedido(PedidoId id, Long versao, ClienteId clienteId, Dinheiro valorTotal, Quantidade totalItens, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, OffsetDateTime prontoEm, Cobranca cobranca, Entrega entrega, StatusPedido status, MetodoPagamento metodoPagamento, Set<ItemPedido> itens) {
 
         this.setId(id);
+        this.setVersao(versao);
         this.setClienteId(clienteId);
         this.setValorTotal(valorTotal);
         this.setQuantidade(totalItens);
@@ -58,6 +61,7 @@ public class Pedido implements RaizDeAgregado<PedidoId> {
     public static Pedido rascunho(ClienteId clienteId) {
         return new Pedido(
                 new PedidoId(),
+                null,
                 clienteId,
                 Dinheiro.ZERO,
                 Quantidade.ZERO,
@@ -198,6 +202,10 @@ public class Pedido implements RaizDeAgregado<PedidoId> {
         return id;
     }
 
+    public Long versao() {
+        return versao;
+    }
+
     public ClienteId clienteId() {
         return clienteId;
     }
@@ -306,6 +314,10 @@ public class Pedido implements RaizDeAgregado<PedidoId> {
     private void setClienteId(ClienteId clienteId) {
         Objects.requireNonNull(clienteId);
         this.clienteId = clienteId;
+    }
+
+    private void setVersao(Long versao) {
+        this.versao = versao;
     }
 
     private void setId(PedidoId id) {
