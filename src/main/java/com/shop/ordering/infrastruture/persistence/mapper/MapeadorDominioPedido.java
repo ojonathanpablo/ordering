@@ -1,5 +1,6 @@
 package com.shop.ordering.infrastruture.persistence.mapper;
 
+import com.shop.ordering.domain.model.entity.ItemPedido;
 import com.shop.ordering.domain.model.entity.MetodoPagamento;
 import com.shop.ordering.domain.model.entity.Pedido;
 import com.shop.ordering.domain.model.entity.StatusPedido;
@@ -10,19 +11,25 @@ import com.shop.ordering.domain.model.valueobject.Documento;
 import com.shop.ordering.domain.model.valueobject.Endereco;
 import com.shop.ordering.domain.model.valueobject.Entrega;
 import com.shop.ordering.domain.model.valueobject.NomeCompleto;
+import com.shop.ordering.domain.model.valueobject.NomeProduto;
 import com.shop.ordering.domain.model.valueobject.Quantidade;
 import com.shop.ordering.domain.model.valueobject.Recebedor;
 import com.shop.ordering.domain.model.valueobject.Telefone;
 import com.shop.ordering.domain.model.valueobject.id.ClienteId;
+import com.shop.ordering.domain.model.valueobject.id.ItemPedidoId;
 import com.shop.ordering.domain.model.valueobject.id.PedidoId;
+import com.shop.ordering.domain.model.valueobject.id.ProdutoId;
 import com.shop.ordering.infrastruture.persistence.embeddable.CobrancaEmbeddable;
 import com.shop.ordering.infrastruture.persistence.embeddable.EnderecoEmbeddable;
 import com.shop.ordering.infrastruture.persistence.embeddable.EntregaEmbeddable;
 import com.shop.ordering.infrastruture.persistence.embeddable.RecebedorEmbeddable;
+import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaItemPedido;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class MapeadorDominioPedido {
@@ -41,9 +48,34 @@ public class MapeadorDominioPedido {
                 .prontoEm(entidadePersistenciaPedido.getProntoEm())
                 .cobranca(mapearCobranca(entidadePersistenciaPedido.getCobranca()))
                 .entrega(mapearEntrega(entidadePersistenciaPedido.getEntrega()))
-                .itens(new HashSet<>())
+                .itens(mapearItens(entidadePersistenciaPedido))
                 .versao(entidadePersistenciaPedido.getVersion())
                 .existente();
+    }
+
+    private Set<ItemPedido> mapearItens(EntidadePersistenciaPedido entidadePersistenciaPedido) {
+        Set<EntidadePersistenciaItemPedido> itensPersistencia = entidadePersistenciaPedido.getItems();
+
+        if (itensPersistencia == null || itensPersistencia.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        return itensPersistencia.stream()
+                .map(itemPersistencia -> mapearItem(entidadePersistenciaPedido, itemPersistencia))
+                .collect(Collectors.toSet());
+    }
+
+    private ItemPedido mapearItem(EntidadePersistenciaPedido entidadePersistenciaPedido,
+                                   EntidadePersistenciaItemPedido itemPersistencia) {
+        return ItemPedido.existente()
+                .id(new ItemPedidoId(itemPersistencia.getId()))
+                .pedidoId(new PedidoId(entidadePersistenciaPedido.getId()))
+                .produtoId(new ProdutoId(itemPersistencia.getProdutoId()))
+                .nomeProduto(new NomeProduto(itemPersistencia.getProdutoNome()))
+                .preco(new Dinheiro(itemPersistencia.getPreco()))
+                .quantidade(new Quantidade(itemPersistencia.getQuantidade()))
+                .valorTotal(new Dinheiro(itemPersistencia.getValorTotal()))
+                .build();
     }
 
     private Cobranca mapearCobranca(CobrancaEmbeddable cobrancaEmbeddable) {

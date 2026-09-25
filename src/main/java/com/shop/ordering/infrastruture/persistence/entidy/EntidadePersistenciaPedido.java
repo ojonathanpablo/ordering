@@ -109,7 +109,7 @@ public class EntidadePersistenciaPedido {
         replaceItems(items);
     }
 
-    private void replaceItems(Set<EntidadePersistenciaItemPedido> itemPedidos) {
+    public void replaceItems(Set<EntidadePersistenciaItemPedido> itemPedidos) {
         if (itemPedidos == null || itemPedidos.isEmpty()) {
             this.setItems(new HashSet<>());
             return;

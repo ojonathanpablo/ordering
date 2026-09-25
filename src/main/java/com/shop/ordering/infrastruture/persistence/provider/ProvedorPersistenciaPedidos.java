@@ -11,6 +11,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProvedorPersistenciaPedidos implements Pedidos {
 
     private final RepositorioPersistenciaPedido repositorioPersistenciaPedido;
@@ -33,10 +35,11 @@ public class ProvedorPersistenciaPedidos implements Pedidos {
 
     @Override
     public boolean existe(PedidoId pedidoId) {
-        return false;
+        return repositorioPersistenciaPedido.existsById(pedidoId.valor().toLong());
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void adicionar(Pedido raizDeAgregado) {
         long pedidoId = raizDeAgregado.id().valor().toLong();
 
@@ -71,6 +74,6 @@ public class ProvedorPersistenciaPedidos implements Pedidos {
 
     @Override
     public int contar() {
-        return 0;
+        return (int) repositorioPersistenciaPedido.count();
     }
 }

@@ -1,5 +1,6 @@
 package com.shop.ordering.infrastruture.persistence.mapper;
 
+import com.shop.ordering.domain.model.entity.ItemPedido;
 import com.shop.ordering.domain.model.entity.Pedido;
 import com.shop.ordering.domain.model.valueobject.Cobranca;
 import com.shop.ordering.domain.model.valueobject.Endereco;
@@ -9,8 +10,14 @@ import com.shop.ordering.infrastruture.persistence.embeddable.CobrancaEmbeddable
 import com.shop.ordering.infrastruture.persistence.embeddable.EnderecoEmbeddable;
 import com.shop.ordering.infrastruture.persistence.embeddable.EntregaEmbeddable;
 import com.shop.ordering.infrastruture.persistence.embeddable.RecebedorEmbeddable;
+import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaItemPedido;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
 import org.springframework.stereotype.Component;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class MapeadorEntidadePedido {
@@ -33,7 +40,52 @@ public class MapeadorEntidadePedido {
         entidadePersistenciaPedido.setVersion(pedido.versao());
         entidadePersistenciaPedido.setCobranca(mapearCobranca(pedido.cobranca()));
         entidadePersistenciaPedido.setEntrega(mapearEntrega(pedido.entrega()));
+
+        Set<EntidadePersistenciaItemPedido> itensMesclados = mesclarItens(pedido, entidadePersistenciaPedido);
+        entidadePersistenciaPedido.replaceItems(itensMesclados);
+
         return entidadePersistenciaPedido;
+    }
+
+    private Set<EntidadePersistenciaItemPedido> mesclarItens(Pedido pedido, EntidadePersistenciaPedido entidadePersistenciaPedido) {
+        Set<ItemPedido> itensNovosOuAtualizados = pedido.itensPedido();
+
+        if (itensNovosOuAtualizados == null || itensNovosOuAtualizados.isEmpty()) {
+            return new HashSet<>();
+        }
+
+        Set<EntidadePersistenciaItemPedido> itensExistentes = entidadePersistenciaPedido.getItems();
+        if (itensExistentes == null || itensExistentes.isEmpty()) {
+            return itensNovosOuAtualizados.stream()
+                    .map(this::paraEntidade)
+                    .collect(Collectors.toSet());
+        }
+
+        Map<Long, EntidadePersistenciaItemPedido> mapaItensExistentes = itensExistentes.stream()
+                .collect(Collectors.toMap(EntidadePersistenciaItemPedido::getId, item -> item));
+
+        return itensNovosOuAtualizados.stream()
+                .map(itemPedido -> {
+                    EntidadePersistenciaItemPedido entidadeItemPedido = mapaItensExistentes.getOrDefault(
+                            itemPedido.itemPedidoId().valor().toLong(), new EntidadePersistenciaItemPedido()
+                    );
+                    return mesclar(entidadeItemPedido, itemPedido);
+                })
+                .collect(Collectors.toSet());
+    }
+
+    public EntidadePersistenciaItemPedido paraEntidade(ItemPedido itemPedido) {
+        return mesclar(new EntidadePersistenciaItemPedido(), itemPedido);
+    }
+
+    private EntidadePersistenciaItemPedido mesclar(EntidadePersistenciaItemPedido entidadeItemPedido, ItemPedido itemPedido) {
+        entidadeItemPedido.setId(itemPedido.itemPedidoId().valor().toLong());
+        entidadeItemPedido.setProdutoId(itemPedido.produtoId().valor());
+        entidadeItemPedido.setProdutoNome(itemPedido.nomeProduto().valor());
+        entidadeItemPedido.setPreco(itemPedido.preco().valor());
+        entidadeItemPedido.setQuantidade(itemPedido.quantidade().valor());
+        entidadeItemPedido.setValorTotal(itemPedido.valorTotal().valor());
+        return entidadeItemPedido;
     }
 
     private CobrancaEmbeddable mapearCobranca(Cobranca cobranca) {

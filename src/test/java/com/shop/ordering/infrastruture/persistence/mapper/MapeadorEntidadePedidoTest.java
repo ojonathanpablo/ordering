@@ -1,10 +1,17 @@
 package com.shop.ordering.infrastruture.persistence.mapper;
 
+import com.shop.ordering.domain.model.entity.ItemPedido;
 import com.shop.ordering.domain.model.entity.Pedido;
 import com.shop.ordering.domain.model.entity.PedidoTestDataBuilder;
+import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaItemPedido;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
+import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedidoTestDataBuilder;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 class MapeadorEntidadePedidoTest {
 
@@ -31,8 +38,55 @@ class MapeadorEntidadePedidoTest {
     }
 
     @Test
-    void deveMesclar() {
+    void dadoPedidoSemItens_deveRemoverItensDaEntidadePersistencia() {
+        Pedido pedido = PedidoTestDataBuilder.umPedido().comItens(false).build();
+        EntidadePersistenciaPedido entidadePersistenciaPedido = EntidadePersistenciaPedidoTestDataBuilder.pedidoExistente().build();
 
+        Assertions.assertThat(pedido.itensPedido()).isEmpty();
+        Assertions.assertThat(entidadePersistenciaPedido.getItems()).isNotEmpty();
+
+        mapeadorEntidadePedido.mesclar(entidadePersistenciaPedido, pedido);
+
+        Assertions.assertThat(entidadePersistenciaPedido.getItems()).isEmpty();
+    }
+
+    @Test
+    void dadoPedidoComItens_deveAdicionarNaEntidadePersistencia() {
+        Pedido pedido = PedidoTestDataBuilder.umPedido().comItens(true).build();
+        EntidadePersistenciaPedido entidadePersistenciaPedido = EntidadePersistenciaPedidoTestDataBuilder.pedidoExistente()
+                .items(new HashSet<>())
+                .build();
+
+        Assertions.assertThat(pedido.itensPedido()).isNotEmpty();
+        Assertions.assertThat(entidadePersistenciaPedido.getItems()).isEmpty();
+
+        mapeadorEntidadePedido.mesclar(entidadePersistenciaPedido, pedido);
+
+        Assertions.assertThat(entidadePersistenciaPedido.getItems()).isNotEmpty();
+        Assertions.assertThat(entidadePersistenciaPedido.getItems().size()).isEqualTo(pedido.itensPedido().size());
+    }
+
+    @Test
+    void dadoPedidoComItens_quandoMesclarAposRemoverItem_deveMesclarCorretamente() {
+        Pedido pedido = PedidoTestDataBuilder.umPedido().build();
+
+        Assertions.assertThat(pedido.itensPedido().size()).isEqualTo(2);
+
+        Set<EntidadePersistenciaItemPedido> itensPersistencia = pedido.itensPedido().stream()
+                .map(mapeadorEntidadePedido::paraEntidade)
+                .collect(Collectors.toSet());
+
+        EntidadePersistenciaPedido entidadePersistenciaPedido = EntidadePersistenciaPedidoTestDataBuilder.pedidoExistente()
+                .items(itensPersistencia)
+                .build();
+
+        ItemPedido itemPedido = pedido.itensPedido().iterator().next();
+        pedido.removeItemPedido(itemPedido.itemPedidoId());
+
+        mapeadorEntidadePedido.mesclar(entidadePersistenciaPedido, pedido);
+
+        Assertions.assertThat(entidadePersistenciaPedido.getItems()).isNotEmpty();
+        Assertions.assertThat(entidadePersistenciaPedido.getItems().size()).isEqualTo(pedido.itensPedido().size());
     }
 
 }

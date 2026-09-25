@@ -13,6 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @DataJpaTest
 @Import({
@@ -58,6 +61,38 @@ class ProvedorPersistenciaPedidosIT {
         Assertions.assertThat(entidadePersistencia.getIdDoUsuarioQueCriou()).isNotNull();
         Assertions.assertThat(entidadePersistencia.getUltimaModificacao()).isNotNull();
         Assertions.assertThat(entidadePersistencia.getIdDoUsuarioDaUltimaModificacao()).isNotNull();
+    }
+
+    @Test
+    public void deveVerificarSeExiste() {
+        Pedido pedido = PedidoTestDataBuilder.umPedido().build();
+
+        Assertions.assertThat(provedorPersistenciaPedidos.existe(pedido.id())).isFalse();
+
+        provedorPersistenciaPedidos.adicionar(pedido);
+
+        Assertions.assertThat(provedorPersistenciaPedidos.existe(pedido.id())).isTrue();
+    }
+
+    @Test
+    public void deveContar() {
+        Assertions.assertThat(provedorPersistenciaPedidos.contar()).isZero();
+
+        provedorPersistenciaPedidos.adicionar(PedidoTestDataBuilder.umPedido().build());
+
+        Assertions.assertThat(provedorPersistenciaPedidos.contar()).isEqualTo(1);
+    }
+
+    @Test
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    public void deveAdicionarEEncontrarSemFalharSemTransacao() {
+        Pedido pedido = PedidoTestDataBuilder.umPedido().build();
+        provedorPersistenciaPedidos.adicionar(pedido);
+
+        Assertions.assertThatNoException().isThrownBy(
+                () -> provedorPersistenciaPedidos.porId(pedido.id()).orElseThrow()
+        );
     }
 
 }
