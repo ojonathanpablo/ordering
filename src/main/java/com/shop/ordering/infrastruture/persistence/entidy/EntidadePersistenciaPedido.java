@@ -11,6 +11,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -18,8 +20,6 @@ import java.util.UUID;
 @Setter
 @ToString()
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(name = "Pedido")
 @EntityListeners(AuditingEntityListener.class)
@@ -84,5 +84,53 @@ public class EntidadePersistenciaPedido {
             @AttributeOverride(name = "endereco.cep", column = @Column(name = "entrega_endereco_cep"))
     })
     private EntregaEmbeddable entrega;
+
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<EntidadePersistenciaItemPedido> items = new HashSet<>();
+
+    @Builder
+    public EntidadePersistenciaPedido(OffsetDateTime prontoEm, Long id, UUID clienteId, BigDecimal valorTotal, int quantidade, String status, String metodoPagamento, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, Long version, UUID idDoUsuarioQueCriou, OffsetDateTime ultimaModificacao, UUID idDoUsuarioDaUltimaModificacao, CobrancaEmbeddable cobranca, EntregaEmbeddable entrega, Set<EntidadePersistenciaItemPedido> items) {
+        this.prontoEm = prontoEm;
+        this.id = id;
+        this.clienteId = clienteId;
+        this.valorTotal = valorTotal;
+        this.quantidade = quantidade;
+        this.status = status;
+        this.metodoPagamento = metodoPagamento;
+        this.realizadoEm = realizadoEm;
+        this.pagoEm = pagoEm;
+        this.canceladoEm = canceladoEm;
+        this.version = version;
+        this.idDoUsuarioQueCriou = idDoUsuarioQueCriou;
+        UltimaModificacao = ultimaModificacao;
+        this.idDoUsuarioDaUltimaModificacao = idDoUsuarioDaUltimaModificacao;
+        this.cobranca = cobranca;
+        this.entrega = entrega;
+        replaceItems(items);
+    }
+
+    private void replaceItems(Set<EntidadePersistenciaItemPedido> itemPedidos) {
+        if (itemPedidos == null || itemPedidos.isEmpty()) {
+            this.setItems(new HashSet<>());
+            return;
+        }
+
+        itemPedidos.forEach(itemPedido -> itemPedido.setPedido(this));
+        this.setItems(itemPedidos);
+    }
+
+    public void addItem(EntidadePersistenciaItemPedido itemPedido) {
+        if (itemPedido == null) {
+            return;
+        }
+
+        if (this.getItems() == null) {
+            this.setItems(new HashSet<>());
+        }
+
+        itemPedido.setPedido(this);
+        this.getItems().add(itemPedido);
+    }
+
 
 }

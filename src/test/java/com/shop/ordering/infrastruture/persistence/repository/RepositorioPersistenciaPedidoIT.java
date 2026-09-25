@@ -32,6 +32,10 @@ class RepositorioPersistenciaPedidoIT {
 
         repositorioPersistenciaPedido.saveAndFlush(entidade);
         Assertions.assertThat(repositorioPersistenciaPedido.existsById(entidade.getId())).isTrue();
+
+        EntidadePersistenciaPedido entidadeSalva = repositorioPersistenciaPedido.findById(entidade.getId()).orElseThrow();
+
+        Assertions.assertThat(entidadeSalva.getItems()).isNotEmpty();
     }
 
     @Test
