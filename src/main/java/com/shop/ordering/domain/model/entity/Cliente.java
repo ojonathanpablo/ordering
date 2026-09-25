@@ -24,6 +24,8 @@ public class Cliente implements RaizDeAgregado<ClienteId> {
     private OffsetDateTime arquivadoEm;
     private PontosFidelidade pontosFidelidade;
     private Endereco endereco;
+    private Long versao;
+
 
     @Builder(builderClassName = "ClienteNovoBuilder", builderMethodName = "novo")
     public static Cliente criarNovo(NomeCompleto nomeCompleto, DataNascimento dataNascimento, Email email, Telefone telefone,
@@ -41,7 +43,8 @@ public class Cliente implements RaizDeAgregado<ClienteId> {
                 OffsetDateTime.now(),
                 null,
                 PontosFidelidade.ZERO,
-                endereco
+                endereco,
+                null
         );
 
     }
@@ -49,7 +52,7 @@ public class Cliente implements RaizDeAgregado<ClienteId> {
     @Builder(builderClassName = "ClienteExistenteBuilder", builderMethodName = "existente")
     private Cliente(ClienteId id, NomeCompleto nomeCompleto, DataNascimento dataNascimento, Email email, Telefone telefone,
                     Documento documento, Boolean notificacoesPromocionaisPermitidas, Boolean arquivado,
-                    OffsetDateTime registradoEm, OffsetDateTime arquivadoEm, PontosFidelidade pontosFidelidade, Endereco endereco) {
+                    OffsetDateTime registradoEm, OffsetDateTime arquivadoEm, PontosFidelidade pontosFidelidade, Endereco endereco, Long versao) {
         this.setId(id);
         this.setNomeCompleto(nomeCompleto);
         this.setDataNascimento(dataNascimento);
@@ -62,6 +65,7 @@ public class Cliente implements RaizDeAgregado<ClienteId> {
         this.setArquivadoEm(arquivadoEm);
         this.setPontosFidelidade(pontosFidelidade);
         this.setEndereco(endereco);
+        this.setVersao(versao);
     }
 
     public void adicionarPontosFidelidade(PontosFidelidade pontosFidelidadeAdicionados) {
@@ -157,6 +161,10 @@ public class Cliente implements RaizDeAgregado<ClienteId> {
         return endereco;
     }
 
+    public Long versao() {
+        return versao;
+    }
+
     public void alterarEndereco(Endereco endereco) {
         verificarSeAlteravel();
         this.setEndereco(endereco);
@@ -224,6 +232,10 @@ public class Cliente implements RaizDeAgregado<ClienteId> {
         if (this.isArquivado()) {
             throw new ClienteArquivadoException();
         }
+    }
+
+    private void setVersao(Long versao) {
+        this.versao = versao;
     }
 
     @Override
