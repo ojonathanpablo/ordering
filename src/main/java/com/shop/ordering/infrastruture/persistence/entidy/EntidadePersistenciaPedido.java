@@ -27,7 +27,10 @@ public class EntidadePersistenciaPedido {
 
     @Id
     private Long id;
-    private UUID clienteId;
+
+    @JoinColumn
+    @ManyToOne(optional = false)
+    private EntidadePersistenciaCliente cliente;
 
     private BigDecimal valorTotal;
     private int quantidade;
@@ -89,10 +92,10 @@ public class EntidadePersistenciaPedido {
     private Set<EntidadePersistenciaItemPedido> items = new HashSet<>();
 
     @Builder
-    public EntidadePersistenciaPedido(OffsetDateTime prontoEm, Long id, UUID clienteId, BigDecimal valorTotal, int quantidade, String status, String metodoPagamento, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, Long version, UUID idDoUsuarioQueCriou, OffsetDateTime ultimaModificacao, UUID idDoUsuarioDaUltimaModificacao, CobrancaEmbeddable cobranca, EntregaEmbeddable entrega, Set<EntidadePersistenciaItemPedido> items) {
+    public EntidadePersistenciaPedido(OffsetDateTime prontoEm, Long id, EntidadePersistenciaCliente cliente, BigDecimal valorTotal, int quantidade, String status, String metodoPagamento, OffsetDateTime realizadoEm, OffsetDateTime pagoEm, OffsetDateTime canceladoEm, Long version, UUID idDoUsuarioQueCriou, OffsetDateTime ultimaModificacao, UUID idDoUsuarioDaUltimaModificacao, CobrancaEmbeddable cobranca, EntregaEmbeddable entrega, Set<EntidadePersistenciaItemPedido> items) {
         this.prontoEm = prontoEm;
         this.id = id;
-        this.clienteId = clienteId;
+        this.cliente = cliente;
         this.valorTotal = valorTotal;
         this.quantidade = quantidade;
         this.status = status;
@@ -130,6 +133,13 @@ public class EntidadePersistenciaPedido {
 
         itemPedido.setPedido(this);
         this.getItems().add(itemPedido);
+    }
+
+    public UUID getClienteId() {
+        if (this.cliente == null) {
+            return null;
+        }
+        return this.cliente.getId();
     }
 
 

@@ -1,10 +1,15 @@
 package com.shop.ordering.domain.model.repository;
 
+import com.shop.ordering.domain.model.entity.Cliente;
+import com.shop.ordering.domain.model.entity.ClienteTestDataBuilder;
 import com.shop.ordering.domain.model.entity.Pedido;
 import com.shop.ordering.domain.model.entity.PedidoTestDataBuilder;
 import com.shop.ordering.domain.model.valueobject.id.PedidoId;
+import com.shop.ordering.infrastruture.persistence.mapper.MapeadorDominioCliente;
 import com.shop.ordering.infrastruture.persistence.mapper.MapeadorDominioPedido;
+import com.shop.ordering.infrastruture.persistence.mapper.MapeadorEntidadeCliente;
 import com.shop.ordering.infrastruture.persistence.mapper.MapeadorEntidadePedido;
+import com.shop.ordering.infrastruture.persistence.provider.ProvedorPersistenciaClientes;
 import com.shop.ordering.infrastruture.persistence.provider.ProvedorPersistenciaPedidos;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,20 +24,28 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 @Import({
         ProvedorPersistenciaPedidos.class,
         MapeadorEntidadePedido.class,
-        MapeadorDominioPedido.class
+        MapeadorDominioPedido.class,
+        ProvedorPersistenciaClientes.class,
+        MapeadorEntidadeCliente.class,
+        MapeadorDominioCliente.class
 })
 class PedidosIT {
 
     private Pedidos pedidos;
+    private Clientes clientes;
 
     @Autowired
-    public PedidosIT(Pedidos pedidos) {
+    public PedidosIT(Pedidos pedidos, Clientes clientes) {
         this.pedidos = pedidos;
+        this.clientes = clientes;
     }
 
     @Test
     public void devePersistirEEncontrar() {
-        Pedido pedidoOriginal = PedidoTestDataBuilder.umPedido().build();
+        Cliente cliente = ClienteTestDataBuilder.clienteNovo().build();
+        clientes.adicionar(cliente);
+
+        Pedido pedidoOriginal = PedidoTestDataBuilder.umPedido().clienteId(cliente.id()).build();
         PedidoId pedidoId = pedidoOriginal.id();
         pedidos.adicionar(pedidoOriginal);
 

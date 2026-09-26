@@ -15,7 +15,7 @@ public class EntidadePersistenciaPedidoTestDataBuilder {
     public static EntidadePersistenciaPedidoBuilder pedidoExistente() {
         return EntidadePersistenciaPedido.builder()
                 .id(GeradorId.gerarTSID().toLong())
-                .clienteId(GeradorId.gerarUUIDBaseadoTempo())
+                .cliente(EntidadePersistenciaClienteTestDataBuilder.clienteExistente().build())
                 .quantidade(3)
                 .valorTotal(new BigDecimal(1250))
                 .status("RASCUNHO")

@@ -7,6 +7,7 @@ import com.shop.ordering.domain.model.valueobject.Dinheiro;
 import com.shop.ordering.domain.model.valueobject.Quantidade;
 import com.shop.ordering.domain.model.valueobject.id.ClienteId;
 import com.shop.ordering.domain.model.valueobject.id.PedidoId;
+import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaCliente;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,7 +24,7 @@ class MapeadorDominioPedidoTest {
     public void deveConverterDaPersistenciaParaDominio() {
         EntidadePersistenciaPedido entidadePersistenciaPedido = EntidadePersistenciaPedido.builder()
                 .id(1L)
-                .clienteId(UUID.randomUUID())
+                .cliente(EntidadePersistenciaCliente.builder().id(UUID.randomUUID()).build())
                 .valorTotal(new BigDecimal("100.00"))
                 .quantidade(2)
                 .status("REALIZADO")

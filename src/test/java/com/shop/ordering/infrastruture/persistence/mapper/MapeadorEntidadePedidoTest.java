@@ -3,19 +3,41 @@ package com.shop.ordering.infrastruture.persistence.mapper;
 import com.shop.ordering.domain.model.entity.ItemPedido;
 import com.shop.ordering.domain.model.entity.Pedido;
 import com.shop.ordering.domain.model.entity.PedidoTestDataBuilder;
+import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaCliente;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaItemPedido;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedidoTestDataBuilder;
+import com.shop.ordering.infrastruture.persistence.repository.RepositorioPersistenciaCliente;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+@ExtendWith(MockitoExtension.class)
 class MapeadorEntidadePedidoTest {
 
-    private final MapeadorEntidadePedido mapeadorEntidadePedido = new MapeadorEntidadePedido();
+    @Mock
+    private RepositorioPersistenciaCliente repositorioPersistenciaCliente;
+
+    @InjectMocks
+    private MapeadorEntidadePedido mapeadorEntidadePedido;
+
+    @BeforeEach
+    void setUp() {
+        Mockito.when(repositorioPersistenciaCliente.getReferenceById(Mockito.any(UUID.class)))
+                .thenAnswer(invocacao -> EntidadePersistenciaCliente.builder()
+                        .id(invocacao.getArgument(0))
+                        .build());
+    }
 
     @Test
     void deveConverterDoDominioParaEntidade() {

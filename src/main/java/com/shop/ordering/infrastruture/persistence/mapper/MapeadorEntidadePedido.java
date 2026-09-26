@@ -12,6 +12,8 @@ import com.shop.ordering.infrastruture.persistence.embeddable.EntregaEmbeddable;
 import com.shop.ordering.infrastruture.persistence.embeddable.RecebedorEmbeddable;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaItemPedido;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
+import com.shop.ordering.infrastruture.persistence.repository.RepositorioPersistenciaCliente;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -20,7 +22,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class MapeadorEntidadePedido {
+
+    private final RepositorioPersistenciaCliente persistenciaCliente;
 
     public EntidadePersistenciaPedido paraEntidade(Pedido pedido) {
         return mesclar(new EntidadePersistenciaPedido(), pedido);
@@ -28,7 +33,6 @@ public class MapeadorEntidadePedido {
 
     public EntidadePersistenciaPedido mesclar(EntidadePersistenciaPedido entidadePersistenciaPedido, Pedido pedido) {
         entidadePersistenciaPedido.setId(pedido.id().valor().toLong());
-        entidadePersistenciaPedido.setClienteId(pedido.clienteId().valor());
         entidadePersistenciaPedido.setValorTotal(pedido.valorTotal().valor());
         entidadePersistenciaPedido.setQuantidade(pedido.quantidade().valor());
         entidadePersistenciaPedido.setStatus(pedido.statusPedido().name());
@@ -43,6 +47,9 @@ public class MapeadorEntidadePedido {
 
         Set<EntidadePersistenciaItemPedido> itensMesclados = mesclarItens(pedido, entidadePersistenciaPedido);
         entidadePersistenciaPedido.replaceItems(itensMesclados);
+
+        var entidadePersistenciaCliente = persistenciaCliente.getReferenceById(pedido.clienteId().valor());
+        entidadePersistenciaPedido.setCliente(entidadePersistenciaCliente);
 
         return entidadePersistenciaPedido;
     }
