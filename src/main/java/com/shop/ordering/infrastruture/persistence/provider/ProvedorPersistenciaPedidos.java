@@ -2,6 +2,8 @@ package com.shop.ordering.infrastruture.persistence.provider;
 
 import com.shop.ordering.domain.model.entity.Pedido;
 import com.shop.ordering.domain.model.repository.Pedidos;
+import com.shop.ordering.domain.model.valueobject.Dinheiro;
+import com.shop.ordering.domain.model.valueobject.id.ClienteId;
 import com.shop.ordering.domain.model.valueobject.id.PedidoId;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaPedido;
 import com.shop.ordering.infrastruture.persistence.mapper.MapeadorDominioPedido;
@@ -15,7 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
+import java.time.Year;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -75,5 +80,25 @@ public class ProvedorPersistenciaPedidos implements Pedidos {
     @Override
     public int contar() {
         return (int) repositorioPersistenciaPedido.count();
+    }
+
+    @Override
+    public List<Pedido> realizadosPorClienteNoAno(ClienteId clienteId, Year ano) {
+        List<EntidadePersistenciaPedido> entidades = repositorioPersistenciaPedido.realizadosPorClienteNoAno(
+                clienteId.valor(),
+                ano.getValue()
+        );
+
+        return entidades.stream().map(mapeadorDominioPedido::paraDominio).collect(Collectors.toList());
+    }
+
+    @Override
+    public long quantidadeVendasPorClienteNoAno(ClienteId clienteId, Year ano) {
+        return repositorioPersistenciaPedido.quantidadeVendasPorClienteNoAno(clienteId.valor(), ano.getValue());
+    }
+
+    @Override
+    public Dinheiro totalVendidoParaCliente(ClienteId clienteId) {
+        return new Dinheiro(repositorioPersistenciaPedido.totalVendidoParaCliente(clienteId.valor()));
     }
 }

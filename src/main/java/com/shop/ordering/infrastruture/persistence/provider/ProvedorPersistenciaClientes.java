@@ -2,6 +2,7 @@ package com.shop.ordering.infrastruture.persistence.provider;
 
 import com.shop.ordering.domain.model.entity.Cliente;
 import com.shop.ordering.domain.model.repository.Clientes;
+import com.shop.ordering.domain.model.valueobject.Email;
 import com.shop.ordering.domain.model.valueobject.id.ClienteId;
 import com.shop.ordering.infrastruture.persistence.entidy.EntidadePersistenciaCliente;
 import com.shop.ordering.infrastruture.persistence.mapper.MapeadorDominioCliente;
@@ -58,8 +59,19 @@ public class ProvedorPersistenciaClientes implements Clientes {
         return (int) persistenciaCliente.count();
     }
 
+    @Override
+    public Optional<Cliente> deEmail(Email email) {
+        return persistenciaCliente.findByEmail(email.valor())
+                .map(mapeadorDominioCliente::paraDominio);
+    }
+
+    @Override
+    public boolean eEmailUnico(Email email, ClienteId exceptCustomerId) {
+        return !persistenciaCliente.existsByEmailAndIdNot(email.valor(), exceptCustomerId.valor());
+    }
+
     private void atualizar(Cliente raizDeAgregado, EntidadePersistenciaCliente entidadePersistenciaCliente) {
-        entidadePersistenciaCliente = mapeadorEntidadeCliente.mesclar(entidadePersistenciaCliente,raizDeAgregado);
+        entidadePersistenciaCliente = mapeadorEntidadeCliente.mesclar(entidadePersistenciaCliente, raizDeAgregado);
         entityManager.detach(entidadePersistenciaCliente);
         entidadePersistenciaCliente = persistenciaCliente.saveAndFlush(entidadePersistenciaCliente);
         updateVersion(raizDeAgregado, entidadePersistenciaCliente);
@@ -78,4 +90,5 @@ public class ProvedorPersistenciaClientes implements Clientes {
         ReflectionUtils.setField(versao, aggregateRoot, persistenceEntity.getVersao());
         versao.setAccessible(false);
     }
+
 }

@@ -19,6 +19,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @DataJpaTest
@@ -142,6 +143,50 @@ class ProvedorPersistenciaClientesIT {
         provedorPersistenciaClientes.adicionar(ClienteTestDataBuilder.clienteNovo().build());
 
         Assertions.assertThat(provedorPersistenciaClientes.contar()).isEqualTo(2);
+    }
+
+    @Test
+    public void deveEncontrarClientePorEmail() {
+        Cliente cliente = ClienteTestDataBuilder.clienteNovo().email(new Email("maria@email.com")).build();
+        provedorPersistenciaClientes.adicionar(cliente);
+
+        Optional<Cliente> clienteEncontrado = provedorPersistenciaClientes.deEmail(new Email("maria@email.com"));
+
+        Assertions.assertThat(clienteEncontrado).isPresent();
+        Assertions.assertThat(clienteEncontrado.get().id()).isEqualTo(cliente.id());
+    }
+
+    @Test
+    public void naoDeveEncontrarClienteComEmailInexistente() {
+        provedorPersistenciaClientes.adicionar(ClienteTestDataBuilder.clienteNovo().build());
+
+        Assertions.assertThat(provedorPersistenciaClientes.deEmail(new Email("inexistente@email.com"))).isEmpty();
+    }
+
+    @Test
+    public void deveSerEmailUnicoQuandoNenhumOutroClienteUsa() {
+        Cliente cliente = ClienteTestDataBuilder.clienteNovo().email(new Email("maria@email.com")).build();
+        provedorPersistenciaClientes.adicionar(cliente);
+
+        Assertions.assertThat(provedorPersistenciaClientes.eEmailUnico(new Email("joao@email.com"), cliente.id())).isTrue();
+    }
+
+    @Test
+    public void deveSerEmailUnicoQuandoEmailPertenceAoProprioCliente() {
+        Cliente cliente = ClienteTestDataBuilder.clienteNovo().email(new Email("maria@email.com")).build();
+        provedorPersistenciaClientes.adicionar(cliente);
+
+        Assertions.assertThat(provedorPersistenciaClientes.eEmailUnico(new Email("maria@email.com"), cliente.id())).isTrue();
+    }
+
+    @Test
+    public void naoDeveSerEmailUnicoQuandoOutroClienteUsa() {
+        Cliente maria = ClienteTestDataBuilder.clienteNovo().email(new Email("maria@email.com")).build();
+        Cliente joao = ClienteTestDataBuilder.clienteNovo().email(new Email("joao@email.com")).build();
+        provedorPersistenciaClientes.adicionar(maria);
+        provedorPersistenciaClientes.adicionar(joao);
+
+        Assertions.assertThat(provedorPersistenciaClientes.eEmailUnico(new Email("maria@email.com"), joao.id())).isFalse();
     }
 
     @Test
