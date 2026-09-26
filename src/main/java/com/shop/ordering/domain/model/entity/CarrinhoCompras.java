@@ -27,6 +27,7 @@ public class CarrinhoCompras implements RaizDeAgregado<CarrinhoComprasId> {
     private Quantidade totalDeItens;
     private OffsetDateTime criadoEm;
     private Set<ItemCarrinhoCompras> itens;
+    private Long versao;
 
     @Builder(builderClassName = "CarrinhoComprasExistenteBuilder", builderMethodName = "existente")
     public CarrinhoCompras(CarrinhoComprasId carrinhoComprasId,
@@ -34,7 +35,8 @@ public class CarrinhoCompras implements RaizDeAgregado<CarrinhoComprasId> {
                            Dinheiro valorTotal,
                            Quantidade totalDeItens,
                            OffsetDateTime criadoEm,
-                           Set<ItemCarrinhoCompras> itens) {
+                           Set<ItemCarrinhoCompras> itens,
+                           Long versao) {
 
         this.setCarrinhoComprasId(carrinhoComprasId);
         this.setClienteId(clienteId);
@@ -42,6 +44,7 @@ public class CarrinhoCompras implements RaizDeAgregado<CarrinhoComprasId> {
         this.setTotalDeItens(totalDeItens);
         this.setCriadoEm(criadoEm);
         this.setItens(itens);
+        this.setVersao(versao);
     }
 
     @Builder(builderClassName = "CarrinhoNovoBuild", builderMethodName = "novo")
@@ -53,7 +56,8 @@ public class CarrinhoCompras implements RaizDeAgregado<CarrinhoComprasId> {
                 Dinheiro.ZERO,
                 Quantidade.ZERO,
                 OffsetDateTime.now(),
-                new HashSet<>()
+                new HashSet<>(),
+                null
         );
 
     }
@@ -151,6 +155,10 @@ public class CarrinhoCompras implements RaizDeAgregado<CarrinhoComprasId> {
         return Collections.unmodifiableSet(itens);
     }
 
+    public Long versao() {
+        return versao;
+    }
+
     private void atualizarItemExistente(ItemCarrinhoCompras itemCarrinhoCompras, Produto produto, Quantidade quantidade) {
         itemCarrinhoCompras.atualizar(produto);
         itemCarrinhoCompras.alterarQuantidade(itemCarrinhoCompras.quantidade().somar(quantidade));
@@ -208,6 +216,10 @@ public class CarrinhoCompras implements RaizDeAgregado<CarrinhoComprasId> {
     private void setItens(Set<ItemCarrinhoCompras> itens) {
         Objects.requireNonNull(itens);
         this.itens = itens;
+    }
+
+    private void setVersao(Long versao) {
+        this.versao = versao;
     }
 
     @Override
